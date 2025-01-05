@@ -70,7 +70,7 @@ class TimerController:
         state = self.get_state()
 
         # If the Timer just finished
-        if not state["running"] and state["remaining_time"] == 0:
+        if state["remaining_time"] == 0:
             self._handle_completion(previous_mode)
 
         return state
