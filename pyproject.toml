@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tomatix"
+version = "0.1"
+description = "Tomatix Timer Application"
+authors = [
+    {name = "Ze Rocinante", email = "193788145+zerocinante@users.noreply.github.com"}
+]
+dependencies = [
+    "customtkinter>=5.0"
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["tomatix*"]
