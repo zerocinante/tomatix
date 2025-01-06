@@ -44,8 +44,8 @@ class TimerController:
     def pause(self):
         self.timer.pause()
 
-    def skip(self):
-        self.timer.skip()
+    def mark_done(self):
+        self.timer.mark_done()
 
     def reset(self):
         self.timer.reset()

@@ -28,13 +28,6 @@ class MainUI:
 
         self._setup_controls()
 
-        # Simple labels for Focus Round progress
-        self.current_focus_rounds_label = ctk.CTkLabel(self.root, text="Current: 0/4", font=("Helvetica", 16), anchor="w")
-        self.current_focus_rounds_label.pack(pady=(10, 0), padx=20, anchor="w")
-
-        self.total_focus_rounds_label = ctk.CTkLabel(self.root, text="Total: 0", font=("Helvetica", 16), anchor="w")
-        self.total_focus_rounds_label.pack(pady=(0, 20), padx=20, anchor="w")
-
         self.update_ui()
 
         # Bind Enter key to start/pause toggling
@@ -50,17 +43,49 @@ class MainUI:
         menu_bar.add_cascade(label="Settings", menu=settings_menu)
 
     def _setup_controls(self):
-        start_button = ctk.CTkButton(self.root, text="Start", command=self.start_timer)
-        start_button.pack(side="left", padx=10)
+        """
+        Initializes the buttons but does not display them immediately.
+        Button visibility will be managed dynamically based on the timer state.
+        """
+        # Focus round count label
+        self.current_focus_rounds_label = ctk.CTkLabel(self.root, text="0/4", font=("Helvetica", 24), anchor="center")
+        self.current_focus_rounds_label.pack(pady=(10, 20))  # Place above the buttons
 
-        pause_button = ctk.CTkButton(self.root, text="Pause", command=self.pause_timer)
-        pause_button.pack(side="left", padx=10)
+        # Buttons
+        self.start_button = ctk.CTkButton(self.root, text="Start", command=self.start_timer)
+        self.pause_button = ctk.CTkButton(self.root, text="Pause", command=self.pause_timer)
+        self.reset_button = ctk.CTkButton(self.root, text="Reset", command=self.reset_timer)
+        self.resume_button = ctk.CTkButton(self.root, text="Resume", command=self.start_timer)
+        self.done_button = ctk.CTkButton(self.root, text="Done", command=self.done_action)
 
-        reset_button = ctk.CTkButton(self.root, text="Reset", command=self.reset_timer)
-        reset_button.pack(side="left", padx=10)
+        # Display only relevant buttons initially
+        self.update_buttons()
 
-        skip_button = ctk.CTkButton(self.root, text="Skip", command=self.skip_current)
-        skip_button.pack(side="left", padx=10)
+    def update_buttons(self):
+        """
+        Dynamically updates the button layout based on the current timer state.
+        """
+        state = self.timer_controller.get_state()
+        running = state["running"]
+        remaining_time = state["remaining_time"]
+        full_time = self.timer_controller.timer.focus_round_duration
+
+        # Hide all buttons initially
+        self.start_button.pack_forget()
+        self.pause_button.pack_forget()
+        self.reset_button.pack_forget()
+        self.resume_button.pack_forget()
+        self.done_button.pack_forget()
+
+        # Show buttons based on the state
+        if not running and remaining_time == full_time:
+            self.start_button.pack(side="top", pady=10)  # Center the START button
+        elif running:
+            self.pause_button.pack(side="left", padx=20, pady=10)
+            self.reset_button.pack(side="left", padx=20, pady=10)
+        elif not running and remaining_time < full_time:
+            self.resume_button.pack(side="left", padx=20, pady=10)
+            self.done_button.pack(side="left", padx=20, pady=10)
 
     def toggle_timer(self, event=None):
         if self.timer_controller.get_state()["running"]:
@@ -70,29 +95,29 @@ class MainUI:
 
     def start_timer(self):
         self.timer_controller.start()
+        self.update_buttons()
 
     def pause_timer(self):
         self.timer_controller.pause()
+        self.update_buttons()
 
     def reset_timer(self):
         self.timer_controller.reset()
         self.update_ui()
+        self.update_buttons()
 
-    def skip_current(self):
-        self.timer_controller.skip()
+    def done_action(self):
+        self.timer_controller.mark_done()
+        self.update_buttons()
 
     def update_ui(self):
-        """
-        Polled periodically by Tkinter (via after()) to refresh the timer display.
-        Also checks if the timer has completed a cycle via timer_controller.update().
-        """
         state = self.timer_controller.update()
         mins, secs = divmod(state["remaining_time"], 60)
         self.timer_label.configure(text=f"{mins:02}:{secs:02}")
         self.mode_label.configure(text=state["mode"])
 
-        self.current_focus_rounds_label.configure(text=f"Current: {state['current_focus_rounds']}/{self.timer_controller.timer.cycles}")
-        self.total_focus_rounds_label.configure(text=f"Total: {state['total_focus_rounds']}")
+        # Update focus round count (e.g., 0/4)
+        self.current_focus_rounds_label.configure(text=f"{state['current_focus_rounds']}/{self.timer_controller.timer.cycles}")
 
         self.root.after(200, self.update_ui)
 

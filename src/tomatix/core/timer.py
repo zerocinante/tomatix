@@ -49,7 +49,7 @@ class Timer:
             # Capture how long we ran
             self.elapsed_time = time.time() - self.start_time
 
-    def skip(self):
+    def mark_done(self):
         """
         Force-end the current cycle early by setting remaining_time to 0.
         We also finalize elapsed_time if we were running.
@@ -91,7 +91,7 @@ class Timer:
     def get_elapsed_minutes(self):
         """
         Returns how many whole minutes have been used in this cycle.
-        Useful for partial logging (i.e., skip) or final logging at cycle end.
+        Useful for partial logging (i.e., mark_done) or final logging at cycle end.
         """
         if self.running:
             self.elapsed_time = time.time() - self.start_time
