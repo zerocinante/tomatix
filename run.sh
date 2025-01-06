@@ -34,6 +34,8 @@ start_app() {
 if [ "$1" == "restart" ]; then
   stop_app
   start_app
+elif [ "$1" == "stop" ]; then
+  stop_app
 else
   if is_app_running; then
     echo "Tomatix Timer is already running. Use '$0 restart' to restart."
