@@ -6,7 +6,7 @@ class PersistenceManager:
     Handles reading/writing Focus Round-related data to a local SQLite database.
     We keep DB logic here so the rest of the app doesn’t worry about SQL details.
     """
-    def __init__(self, db_path="focus_round_stats.db"):
+    def __init__(self, db_path="tomatix_stats.db"):
         self.db_conn = sqlite3.connect(db_path)
         self._initialize_db()
 
@@ -26,9 +26,9 @@ class PersistenceManager:
             """)
             self.db_conn.execute("""
                 CREATE TABLE IF NOT EXISTS focus_round_stats (
-                    id INTEGER PRIMARY KEY,
-                    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
-                    duration_minutes INTEGER DEFAULT 0
+                    date DATE PRIMARY KEY,
+                    total_focus_rounds INTEGER DEFAULT 0,
+                    total_minutes INTEGER DEFAULT 0
                 )
             """)
 
@@ -47,25 +47,28 @@ class PersistenceManager:
 
     def log_focus_round(self, duration_minutes):
         """
-        Inserts a new Focus Round record. duration_minutes can be the full or
-        partial duration if the user skipped early.
+        Log the completion of a Focus Round for the current day.
+        Updates the daily stats or creates a new entry if none exists.
         """
         with self.db_conn:
+            # Update if the row for today exists, otherwise insert a new row
             self.db_conn.execute("""
-                INSERT INTO focus_round_stats (duration_minutes) VALUES (?)
-            """, (duration_minutes,))
+                INSERT INTO focus_round_stats (date, total_focus_rounds, total_minutes)
+                VALUES (DATE('now'), 1, ?)
+                ON CONFLICT(date) DO UPDATE
+                SET total_focus_rounds = total_focus_rounds + 1,
+                    total_minutes = total_minutes + ?
+            """, (duration_minutes, duration_minutes))
 
-    def get_statistics(self):
+    def get_today_stats(self):
         """
-        Returns a list of daily aggregates (date, focus_round_count, total_minutes).
-        Useful for displaying stats in the UI.
+        Fetch stats for the current day.
+        Returns a tuple: (total_focus_rounds, total_minutes).
         """
         cursor = self.db_conn.execute("""
-            SELECT DATE(timestamp) as day,
-                   COUNT(*) as focus_round_count,
-                   SUM(duration_minutes) as total_minutes
+            SELECT total_focus_rounds, total_minutes
             FROM focus_round_stats
-            GROUP BY DATE(timestamp)
-            ORDER BY day DESC
+            WHERE date = DATE('now')
         """)
-        return cursor.fetchall()
+        result = cursor.fetchone()
+        return result or (0, 0)  # Return (0, 0) if no entry exists for today

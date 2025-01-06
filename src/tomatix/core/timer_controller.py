@@ -83,7 +83,7 @@ class TimerController:
         3. Notify the UI via on_mode_complete if provided.
         """
         elapsed_minutes = self.timer.get_elapsed_minutes()
-        if previous_mode == "Focus Round":
+        if previous_mode == "Focus Round" and elapsed_minutes > 0:
             self.persistence_manager.log_focus_round(elapsed_minutes)
 
         self.timer.next_mode()

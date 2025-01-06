@@ -91,7 +91,7 @@ class MainUI:
         self.timer_label.configure(text=f"{mins:02}:{secs:02}")
         self.mode_label.configure(text=state["mode"])
 
-        self.current_focus_rounds_label.configure(text=f"Current: {state['current_focus_rounds']+1}/{self.timer_controller.timer.cycles}")
+        self.current_focus_rounds_label.configure(text=f"Current: {state['current_focus_rounds']}/{self.timer_controller.timer.cycles}")
         self.total_focus_rounds_label.configure(text=f"Total: {state['total_focus_rounds']}")
 
         self.root.after(200, self.update_ui)
