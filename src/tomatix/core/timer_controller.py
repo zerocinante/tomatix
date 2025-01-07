@@ -46,6 +46,7 @@ class TimerController:
 
     def mark_done(self):
         self.timer.mark_done()
+        self._handle_completion()
 
     def reset(self):
         self.timer.reset()
@@ -75,13 +76,16 @@ class TimerController:
 
         return state
 
-    def _handle_completion(self, previous_mode):
+    def _handle_completion(self, previous_mode=None):
         """
         Called when a cycle ends (either Focus Round or Recharge).
         1. Log partial or full Focus Round time if we just ended a Focus Round.
         2. Switch to the next mode.
         3. Notify the UI via on_mode_complete if provided.
         """
+
+        previous_mode = previous_mode or self.timer.current_mode
+
         elapsed_minutes = self.timer.get_elapsed_minutes()
         if previous_mode == "Focus Round" and elapsed_minutes > 0:
             self.persistence_manager.log_focus_round(elapsed_minutes)
@@ -90,3 +94,15 @@ class TimerController:
 
         if self.on_mode_complete:
             self.on_mode_complete(previous_mode)
+
+    def get_full_time(self):
+        """
+        Returns the full time for the current mode.
+        """
+        if self.timer.current_mode == "Focus Round":
+            return self.timer.focus_round_duration
+        elif self.timer.current_mode == "Recharge":
+            return self.timer.recharge
+        elif self.timer.current_mode == "Extended Recharge":
+            return self.timer.big_recharge
+        return 0  # Fallback

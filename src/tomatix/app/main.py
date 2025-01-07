@@ -13,6 +13,7 @@ def main():
 
     root = ctk.CTk()
     root.title("Tomatix Timer")
+    root.geometry("300x300")
 
     # Create the main UI (which also creates and owns the TimerController)
     app = MainUI(root)
