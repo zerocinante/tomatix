@@ -87,7 +87,7 @@ class TimerController:
         previous_mode = previous_mode or self.timer.current_mode
 
         elapsed_minutes = self.timer.get_elapsed_minutes()
-        if previous_mode == "Focus Round" and elapsed_minutes > 0:
+        if previous_mode == "Focus Round":
             self.persistence_manager.log_focus_round(elapsed_minutes)
 
         self.timer.next_mode()
