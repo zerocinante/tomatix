@@ -109,7 +109,6 @@ class MainUI:
 
     def reset_timer(self):
         self.timer_controller.reset()
-        self.update_ui()
         self.update_buttons()
 
     def done_action(self):
@@ -207,6 +206,7 @@ class MainUI:
             big_recharge_duration = int(big_recharge) * 60
 
             self.timer_controller.save_settings(focus_round_duration, recharge_duration, big_recharge_duration)
+            self.update_buttons()
             window.destroy()
         except ValueError:
             error_label = ctk.CTkLabel(window, text="Invalid input! Please enter integers.")
