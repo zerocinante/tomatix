@@ -25,7 +25,6 @@ class Timer:
         self.remaining_time = self.focus_round_duration
 
         self.current_focus_rounds = 0
-        self.total_focus_rounds = 0
 
     def set_durations(self, focus_round, recharge, big_recharge):
         """
@@ -84,7 +83,6 @@ class Timer:
             "mode": self.current_mode,
             "remaining_time": self.remaining_time,
             "current_focus_rounds": self.current_focus_rounds,
-            "total_focus_rounds": self.total_focus_rounds,
             "running": self.running,
         }
 
@@ -104,7 +102,6 @@ class Timer:
         we return to Focus Round. The cycle resets when we've completed 'cycles' focus_rounds.
         """
         if self.current_mode == "Focus Round":
-            self.total_focus_rounds += 1
             self.current_focus_rounds += 1
             # After 'cycles' focus_rounds, move to an extended recharge
             if self.current_focus_rounds >= self.cycles:
