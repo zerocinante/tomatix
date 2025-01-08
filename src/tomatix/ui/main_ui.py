@@ -16,6 +16,7 @@ class MainUI:
         self.root = root
         self.timer_controller = TimerController()
         self.timer_controller.on_mode_complete = self.handle_timer_completion
+        self.timer_controller.on_state_change = self.handle_state_change
 
         self._setup_menu()
         self.statistics_view = StatisticsView(root, self.timer_controller)
@@ -65,6 +66,10 @@ class MainUI:
 
         self.update_buttons()
 
+    def handle_state_change(self, state):
+        # Called whenever there's a qualitative state change
+        self.update_buttons()
+
     def update_buttons(self):
         """
         Updates button visibility based on the current timer state.
@@ -99,19 +104,15 @@ class MainUI:
 
     def start_timer(self):
         self.timer_controller.start()
-        self.update_buttons()
 
     def pause_timer(self):
         self.timer_controller.pause()
-        self.update_buttons()
 
     def reset_timer(self):
         self.timer_controller.reset()
-        self.update_buttons()
 
     def done_action(self):
         self.timer_controller.mark_done()
-        self.update_buttons()
 
     def update_ui(self):
         """
@@ -129,7 +130,6 @@ class MainUI:
         """
         Handles completion of a timer cycle.
         """
-        self.update_buttons()
         self.statistics_view.update_statistics()
 
         if ended_mode == "Focus Round":
@@ -205,7 +205,6 @@ class MainUI:
             big_recharge_duration = int(big_recharge) * 60
 
             self.timer_controller.save_settings(focus_round_duration, recharge_duration, big_recharge_duration)
-            self.update_buttons()
             window.destroy()
         except ValueError:
             error_label = ctk.CTkLabel(window, text="Invalid input! Please enter integers.")

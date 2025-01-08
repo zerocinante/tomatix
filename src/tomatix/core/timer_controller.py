@@ -24,6 +24,10 @@ class TimerController:
             cycles=cycles
         )
 
+        # The UI can set a callback for when a meaningful state changes
+        self.on_state_change = None
+        self._last_comparable_state = None
+
         # The UI can set a callback for when a mode finishes
         self.on_mode_complete = None
 
@@ -40,9 +44,11 @@ class TimerController:
 
     def start(self):
         self.timer.start()
+        self._check_and_notify_state_change()
 
     def pause(self):
         self.timer.pause()
+        self._check_and_notify_state_change()
 
     def mark_done(self):
         self.timer.mark_done()
@@ -50,6 +56,7 @@ class TimerController:
 
     def reset(self):
         self.timer.reset()
+        self._check_and_notify_state_change()
 
     def get_state(self):
         return self.timer.get_state()
@@ -61,6 +68,7 @@ class TimerController:
         """
         self.timer.set_durations(focus_round, recharge, big_recharge)
         self.persistence_manager.save_settings(focus_round, recharge, big_recharge)
+        self._check_and_notify_state_change()
 
     def update(self):
         """
@@ -95,6 +103,8 @@ class TimerController:
         if self.on_mode_complete:
             self.on_mode_complete(previous_mode)
 
+        self._check_and_notify_state_change()
+
     def get_full_time(self):
         """
         Returns the full time for the current mode.
@@ -106,3 +116,23 @@ class TimerController:
         elif self.timer.current_mode == "Extended Recharge":
             return self.timer.big_recharge
         return 0  # Fallback
+
+    def _check_and_notify_state_change(self):
+        """
+        Detects meaningful state changes and triggers the `on_state_change` callback.
+        Excludes `remaining_time` to avoid unnecessary updates.
+        """
+        state = self.get_state()  # from the timer
+        # Build dict that omits `remaining_time`
+        comparable_state = {
+            "running": state["running"],
+            "mode": state["mode"],
+            "current_focus_rounds": state["current_focus_rounds"],
+        }
+        if comparable_state != self._last_comparable_state:
+            self._last_comparable_state = comparable_state
+            if self.on_state_change:
+                try:
+                    self.on_state_change(state)
+                except Exception as e:
+                    print(f"Error in on_state_change callback: {e}")
