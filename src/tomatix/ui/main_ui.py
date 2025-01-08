@@ -74,8 +74,6 @@ class MainUI:
         remaining_time = state["remaining_time"]
         full_time = self.timer_controller.get_full_time()
 
-        print(f"DEBUG: Current mode: {self.timer_controller.timer.current_mode}, Full time: {full_time}, Remaining: {remaining_time}")
-
         # Hide all buttons first
         for widget in self.button_frame.winfo_children():
             widget.pack_forget()
@@ -131,6 +129,7 @@ class MainUI:
         """
         Handles completion of a timer cycle.
         """
+        self.update_buttons()
         self.statistics_view.update_statistics()
 
         if ended_mode == "Focus Round":
