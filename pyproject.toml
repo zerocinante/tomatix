@@ -10,7 +10,8 @@ authors = [
     {name = "Ze Rocinante", email = "193788145+zerocinante@users.noreply.github.com"}
 ]
 dependencies = [
-    "customtkinter>=5.0"
+    "customtkinter>=5.0",
+    "tzlocal>=5.0"
 ]
 
 [tool.setuptools.packages.find]

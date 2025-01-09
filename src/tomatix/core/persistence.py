@@ -1,5 +1,7 @@
 # src/tomatix/core/persistence.py
 import sqlite3
+from datetime import datetime
+from tzlocal import get_localzone
 
 class PersistenceManager:
     """
@@ -45,30 +47,37 @@ class PersistenceManager:
         """)
         return cursor.fetchone()
 
+    def get_local_date(self):
+        local_zone = get_localzone()
+        local_time = datetime.now(local_zone)
+        return local_time.strftime("%Y-%m-%d")
+
     def log_focus_round(self, duration_minutes):
         """
         Log the completion of a Focus Round for the current day.
         Updates the daily stats or creates a new entry if none exists.
         """
+        today = self.get_local_date()
         with self.db_conn:
             # Update if the row for today exists, otherwise insert a new row
             self.db_conn.execute("""
                 INSERT INTO focus_round_stats (date, total_focus_rounds, total_minutes)
-                VALUES (DATE('now'), 1, ?)
+                VALUES (?, 1, ?)
                 ON CONFLICT(date) DO UPDATE
                 SET total_focus_rounds = total_focus_rounds + 1,
                     total_minutes = total_minutes + ?
-            """, (duration_minutes, duration_minutes))
+            """, (today, duration_minutes, duration_minutes))
 
     def get_today_stats(self):
         """
         Fetch stats for the current day.
         Returns a tuple: (total_focus_rounds, total_minutes).
         """
+        today = self.get_local_date()
         cursor = self.db_conn.execute("""
             SELECT total_focus_rounds, total_minutes
             FROM focus_round_stats
-            WHERE date = DATE('now')
-        """)
+            WHERE date = ?
+        """,(today,))
         result = cursor.fetchone()
         return result or (0, 0)  # Return (0, 0) if no entry exists for today
