@@ -3,6 +3,7 @@ import customtkinter as ctk
 import tkinter as tk
 from tomatix.ui.statistics_view import StatisticsView
 from tomatix.core.timer_controller import TimerController
+from datetime import datetime
 
 class MainUI:
     """
@@ -12,14 +13,16 @@ class MainUI:
     - StatisticsView for displaying usage stats
     - A full-screen alert system to grab attention when cycles end
     """
-    def __init__(self, root):
+    def __init__(self, root, debug=False):
+        self.debug = debug
+        self._debug_log("__init__ called")
         self.root = root
-        self.timer_controller = TimerController()
+        self.timer_controller = TimerController(debug=self.debug)
         self.timer_controller.on_mode_complete = self.handle_timer_completion
         self.timer_controller.on_state_change = self.handle_state_change
 
         self._setup_menu()
-        self.statistics_view = StatisticsView(root, self.timer_controller)
+        self.statistics_view = StatisticsView(root, self.timer_controller, debug=self.debug)
 
         self._setup_timer_display()
         self._setup_controls()
@@ -30,7 +33,14 @@ class MainUI:
         self.root.bind("<Return>", self.toggle_timer)
         self.root.bind("<space>", self.toggle_timer)
 
+    def _debug_log(self, message):
+        if self.debug:
+            now = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]  # Timestamp with milliseconds
+            print(f"[DEBUG {self.__class__.__name__}] {now} - {message}")
+
+
     def _setup_menu(self):
+        self._debug_log("_setup_menu called")
         menu_bar = tk.Menu(self.root)
         self.root.config(menu=menu_bar)
 
@@ -42,6 +52,7 @@ class MainUI:
         """
         Sets up the timer and mode display elements.
         """
+        self._debug_log("_setup_timer_display called")
         self.timer_label = ctk.CTkLabel(self.root, text="25:00", font=("Helvetica", 48), width=200, anchor="center")
         self.timer_label.pack(pady=20)
 
@@ -55,6 +66,7 @@ class MainUI:
         """
         Initializes and positions control buttons.
         """
+        self._debug_log("_setup_controls called")
         self.button_frame = ctk.CTkFrame(self.root)
         self.button_frame.pack(pady=(0, 20))  # Center the button frame
 
@@ -67,13 +79,14 @@ class MainUI:
         self.update_buttons()
 
     def handle_state_change(self, state):
-        # Called whenever there's a qualitative state change
+        self._debug_log(f"handle_state_change called with state={state}")
         self.update_buttons()
 
     def update_buttons(self):
         """
         Updates button visibility based on the current timer state.
         """
+        self._debug_log("update_buttons called")
         state = self.timer_controller.get_state()
         running = state["running"]
         remaining_time = state["remaining_time"]
@@ -97,27 +110,33 @@ class MainUI:
         """
         Toggles between Start and Pause states.
         """
+        self._debug_log("toggle_timer called")
         if self.timer_controller.get_state()["running"]:
             self.pause_timer()
         else:
             self.start_timer()
 
     def start_timer(self):
+        self._debug_log("start_timer called")
         self.timer_controller.start()
 
     def pause_timer(self):
+        self._debug_log("pause_timer called")
         self.timer_controller.pause()
 
     def reset_timer(self):
+        self._debug_log("reset_timer called")
         self.timer_controller.reset()
 
     def done_action(self):
+        self._debug_log("done_action called")
         self.timer_controller.mark_done()
 
     def update_ui(self):
         """
         Periodically updates the UI with the current timer state.
         """
+        # self._debug_log("update_ui called") # can be spammy—uncomment if needed
         state = self.timer_controller.update()
         mins, secs = divmod(state["remaining_time"], 60)
         self.timer_label.configure(text=f"{mins:02}:{secs:02}")
@@ -130,6 +149,7 @@ class MainUI:
         """
         Handles completion of a timer cycle.
         """
+        self._debug_log(f"handle_timer_completion called with ended_mode={ended_mode}")
         self.statistics_view.update_statistics()
 
         if ended_mode == "Focus Round":
@@ -143,6 +163,7 @@ class MainUI:
         """
         Displays a full-screen alert for timer completion.
         """
+        self._debug_log("show_fullscreen_alert called")
         alert = ctk.CTkToplevel(self.root)
         alert.title("Alert")
         alert.attributes("-fullscreen", True)
@@ -162,6 +183,7 @@ class MainUI:
         """
         Opens the settings window for timer configuration.
         """
+        self._debug_log("open_settings_window called")
         settings_window = ctk.CTkToplevel(self.root)
         settings_window.title("Configure Timer")
 
@@ -199,6 +221,7 @@ class MainUI:
         """
         Saves the updated timer settings.
         """
+        self._debug_log("save_settings called")
         try:
             focus_round_duration = int(focus_round) * 60
             recharge_duration = int(recharge) * 60
