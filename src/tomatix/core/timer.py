@@ -96,11 +96,11 @@ class Timer:
         if self.running:
             # Continuously update the countdown
             self.elapsed_time = time.time() - self.start_time
-            self.remaining_time = max(0, self._get_duration() - int(self.elapsed_time))
+            self.remaining_time = max(0, self._get_duration() - self.elapsed_time)
 
         state = {
             "mode": self.current_mode,
-            "remaining_time": self.remaining_time,
+            "remaining_time": int(self.remaining_time),
             "current_focus_rounds": self.current_focus_rounds,
             "running": self.running,
         }
