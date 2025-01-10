@@ -1,5 +1,6 @@
 # src/tomatix/core/persistence.py
 import sqlite3
+import os
 from datetime import datetime
 from tzlocal import get_localzone
 
@@ -8,8 +9,13 @@ class PersistenceManager:
     Handles reading/writing Focus Round-related data to a local SQLite database.
     We keep DB logic here so the rest of the app doesn’t worry about SQL details.
     """
-    def __init__(self, db_path="tomatix_stats.db", debug=False):
+    def __init__(self, db_path=None, debug=False):
         self.debug = debug
+
+        if db_path is None:
+            script_dir = os.path.dirname(os.path.abspath(__file__))
+            db_path = os.path.join(script_dir, "../../../tomatix_stats.db")
+
         self._debug_log(f"__init__ called with db_path={db_path}")
         self.db_conn = sqlite3.connect(db_path)
         self._initialize_db()
