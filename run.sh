@@ -4,7 +4,7 @@
 SCRIPT_DIR=$(dirname "$(realpath "$0")")
 APP_PATH="$SCRIPT_DIR/src/tomatix/app/main.py"
 VENV_PATH="$SCRIPT_DIR/.venv/bin/activate"
-LOCK_FILE="/tmp/tomatix.lock"
+LOCK_FILE="$SCRIPT_DIR/tomatix.lock"
 
 # Check if the app is running
 is_app_running() {
