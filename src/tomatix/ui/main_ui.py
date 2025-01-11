@@ -26,6 +26,9 @@ class MainUI:
         self.timer_controller.on_mode_complete = self.handle_timer_completion
         self.timer_controller.on_state_change = self.handle_state_change
 
+        # Keep track of the current view
+        self.current_view = "Focus"
+
         # Create frames
         self.focus_frame = None
         self.stats_frame = None
@@ -40,7 +43,7 @@ class MainUI:
         # Initialize the UI update loop
         self.update_ui()
 
-        # Start in the Focus view
+        # Show the Focus view on startup
         self.show_focus_view()
 
     def _debug_log(self, message):
@@ -51,15 +54,33 @@ class MainUI:
     def _setup_menu(self):
         """Creates the menu for switching views + Settings."""
         self._debug_log("_setup_menu called")
-        menu_bar = tk.Menu(self.root)
-        self.root.config(menu=menu_bar)
 
-        menu_bar.add_command(label="Focus", command=self.show_focus_view)
-        menu_bar.add_command(label="Stats", command=self.show_stats_view)
-        menu_bar.add_command(label="⚙", command=self.open_settings_window)
+        self.menu_bar = tk.Menu(self.root)
+        self.root.config(menu=self.menu_bar)
+
+        self.menu_bar.add_command(label="Stats", command=self.toggle_view)
+        self.toggle_cmd_index = self.menu_bar.index("end")
+
+        # 3) Add the settings command
+        self.menu_bar.add_command(label="⚙", command=self.open_settings_window)
+
+    def toggle_view(self):
+        """
+        Toggle between Focus and Stats views, and rename the menu item accordingly.
+        """
+        self._debug_log("toggle_view called")
+
+        if self.current_view == "Focus":
+            self.show_stats_view()
+            self.menu_bar.entryconfig(self.toggle_cmd_index, label="Focus")
+            self.current_view = "Stats"
+        else:
+            self.show_focus_view()
+            self.menu_bar.entryconfig(self.toggle_cmd_index, label="Stats")
+            self.current_view = "Focus"
 
     def _setup_frames(self):
-        """Create the two main frames:"""
+        """Create the two main frames: Focus and Stats."""
         self._debug_log("_setup_frames called")
         # -- Focus Frame --
         self.focus_frame = ctk.CTkFrame(self.root)
@@ -72,6 +93,7 @@ class MainUI:
     def _setup_focus_view_widgets(self):
         """Layout the timer display and controls inside the focus_frame."""
         self._debug_log("_setup_focus_view_widgets called")
+
         # Timer label
         self.timer_label = ctk.CTkLabel(
             self.focus_frame, text="25:00", font=("Helvetica", 48), width=200, anchor="center"
@@ -117,7 +139,7 @@ class MainUI:
         self._debug_log("Showing Stats View.")
         self.focus_frame.pack_forget()
         self.stats_frame.pack(fill="both", expand=True)
-        # Maybe force a statistics_view refresh:
+
         self.statistics_view.update_statistics()
 
     def update_buttons(self):
@@ -183,9 +205,10 @@ class MainUI:
         self.root.after(200, self.update_ui)
 
     def handle_timer_completion(self, ended_mode):
-        """Handles completion of a timer cycle"""
+        """Handles completion of a timer cycle."""
         self._debug_log(f"handle_timer_completion called with ended_mode={ended_mode}")
         self.statistics_view.update_statistics()
+
         if ended_mode == "Focus Round":
             self.show_fullscreen_alert("Focus Round complete! Time for a recharge!")
         elif ended_mode == "Recharge":
