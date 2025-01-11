@@ -100,7 +100,7 @@ class Timer:
 
         state = {
             "mode": self.current_mode,
-            "remaining_time": int(self.remaining_time),
+            "remaining_time": self.remaining_time,
             "current_focus_rounds": self.current_focus_rounds,
             "running": self.running,
         }
@@ -115,7 +115,9 @@ class Timer:
         self._debug_log("get_elapsed_minutes called")
         if self.running:
             self.elapsed_time = time.time() - self.start_time
-        return int(self.elapsed_time // 60)
+
+        clamped_elapsed_time = min(self.elapsed_time, self._get_duration())
+        return int(clamped_elapsed_time // 60)
 
     def next_mode(self):
         """

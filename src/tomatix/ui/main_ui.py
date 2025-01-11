@@ -195,7 +195,7 @@ class MainUI:
     def update_ui(self):
         """Periodically updates the UI with the current timer state."""
         state = self.timer_controller.update()
-        mins, secs = divmod(state["remaining_time"], 60)
+        mins, secs = map(int, divmod(state["remaining_time"], 60))
         self.timer_label.configure(text=f"{mins:02}:{secs:02}")
         self.mode_label.configure(text=state["mode"])
         self.current_focus_rounds_label.configure(

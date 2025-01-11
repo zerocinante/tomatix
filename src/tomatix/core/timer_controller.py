@@ -110,10 +110,11 @@ class TimerController:
         2. Switch to the next mode.
         3. Notify the UI via on_mode_complete if provided.
         """
-        self._debug_log(f"_handle_completion called, previous_mode={previous_mode}")
         previous_mode = previous_mode or self.timer.current_mode
-
         elapsed_minutes = self.timer.get_elapsed_minutes()
+
+        self._debug_log(f"_handle_completion called, previous_mode={previous_mode}, elapsed_minutes={elapsed_minutes}")
+
         if previous_mode == "Focus Round":
             self.persistence_manager.log_focus_round(elapsed_minutes)
 
