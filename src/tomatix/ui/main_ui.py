@@ -72,7 +72,7 @@ class MainUI:
 
         if self.current_view == "Focus":
             self.show_stats_view()
-            self.menu_bar.entryconfig(self.toggle_cmd_index, label="Focus")
+            self.menu_bar.entryconfig(self.toggle_cmd_index, label="Tomatix")
             self.current_view = "Stats"
         else:
             self.show_focus_view()
