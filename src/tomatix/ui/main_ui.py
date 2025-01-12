@@ -36,10 +36,6 @@ class MainUI:
         self._setup_frames()
         self._setup_menu()
 
-        # Key bindings for toggling timer
-        self.root.bind("<Return>", self.toggle_timer)
-        self.root.bind("<space>", self.toggle_timer)
-
         # Initialize the UI update loop
         self.update_ui()
 
@@ -134,11 +130,22 @@ class MainUI:
         self.stats_frame.pack_forget()
         self.focus_frame.pack(fill="both", expand=True)
 
+        self.root.bind("<Return>", self.toggle_timer)
+        self.root.bind("<space>", self.toggle_timer)
+
+        # Unbind alert-specific keys
+        self.root.unbind("<Escape>")
+
     def show_stats_view(self):
         """Show the stats frame and hide the focus (timer) frame."""
         self._debug_log("Showing Stats View.")
         self.focus_frame.pack_forget()
         self.stats_frame.pack(fill="both", expand=True)
+
+        # Unbind alert/timer-specific keys
+        self.root.unbind("<Return>")
+        self.root.unbind("<space>")
+        self.root.unbind("<Escape>")
 
         self.statistics_view.update_statistics()
 
@@ -219,21 +226,54 @@ class MainUI:
     def show_fullscreen_alert(self, message):
         """Displays a full-screen alert for timer completion."""
         self._debug_log("show_fullscreen_alert called")
-        alert = ctk.CTkToplevel(self.root)
-        alert.title("Alert")
-        alert.attributes("-fullscreen", True)
-        alert.configure(bg="black")
 
-        message_label = ctk.CTkLabel(alert, text=message, font=("Helvetica", 48), text_color="white")
-        message_label.pack(expand=True)
+        # Make clear and make fullscreen the main window
+        self.root.attributes("-fullscreen", True)
+        self.focus_frame.pack_forget()
+        self.stats_frame.pack_forget()
 
-        close_button = ctk.CTkButton(alert, text="Close", command=alert.destroy, font=("Helvetica", 24))
-        close_button.pack(pady=20)
+        # Create the alert message label
+        self.alert_message_label = ctk.CTkLabel(
+            self.root,
+            text=message,
+            font=("Helvetica", 48),
+            text_color="white",
+            anchor="center"
+        )
+        self.alert_message_label.pack(expand=True)
 
-        # Bind keys to close the alert
-        alert.bind("<Escape>", lambda e: alert.destroy())
-        alert.bind("<Return>", lambda e: alert.destroy())
-        alert.bind("<space>", lambda e: alert.destroy())
+        # Create the close button
+        self.alert_close_button = ctk.CTkButton(
+            self.root,
+            text="Close",
+            command=self.dismiss_fullscreen_alert,
+            font=("Helvetica", 24)
+        )
+        self.alert_close_button.pack(pady=20)
+
+        self.root.bind("<Escape>", self.dismiss_fullscreen_alert)
+        self.root.bind("<Return>", self.dismiss_fullscreen_alert)
+        self.root.bind("<space>", self.dismiss_fullscreen_alert)
+
+    def dismiss_fullscreen_alert(self, event=None):
+        """Dismiss the fullscreen alert and restore the timer view."""
+        self._debug_log("dismiss_fullscreen_alert called")
+
+        # Destroy the alert message and button
+        if hasattr(self, 'alert_message_label'):
+            self.alert_message_label.destroy()
+        if hasattr(self, 'alert_close_button'):
+            self.alert_close_button.destroy()
+
+        # Exit fullscreen mode
+        self.root.attributes("-fullscreen", False)
+
+        # Restore the timer view
+        if self.current_view == "Focus":
+            self.show_focus_view()
+        else:
+            self.show_stats_view()
+
 
     def open_settings_window(self):
         """Opens the settings window for timer configuration."""
