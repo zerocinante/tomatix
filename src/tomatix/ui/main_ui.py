@@ -29,9 +29,10 @@ class MainUI:
         # Keep track of the current view
         self.current_view = "Focus"
 
-        # Create frames
+        # Create frames (Focus and Stats)
         self.focus_frame = None
         self.stats_frame = None
+        self.views = {}  # Will hold references to frames by name
 
         self._setup_frames()
         self._setup_menu()
@@ -54,11 +55,29 @@ class MainUI:
         self.menu_bar = tk.Menu(self.root)
         self.root.config(menu=self.menu_bar)
 
+        # Toggle command flips between Focus and Stats
         self.menu_bar.add_command(label="Stats", command=self.toggle_view)
         self.toggle_cmd_index = self.menu_bar.index("end")
 
-        # 3) Add the settings command
+        # Add the settings command
         self.menu_bar.add_command(label="⚙", command=self.open_settings_window)
+
+    def _setup_frames(self):
+        """Create the two main frames: Focus and Stats."""
+        self._debug_log("_setup_frames called")
+        # -- Focus Frame --
+        self.focus_frame = ctk.CTkFrame(self.root)
+        self._setup_focus_view_widgets()
+
+        # -- Stats Frame --
+        self.stats_frame = ctk.CTkFrame(self.root)
+        self._setup_stats_view_widgets()
+
+        # Put them in a dictionary for easy switching
+        self.views = {
+            "Focus": self.focus_frame,
+            "Stats": self.stats_frame
+        }
 
     def toggle_view(self):
         """
@@ -75,16 +94,27 @@ class MainUI:
             self.menu_bar.entryconfig(self.toggle_cmd_index, label="Stats")
             self.current_view = "Focus"
 
-    def _setup_frames(self):
-        """Create the two main frames: Focus and Stats."""
-        self._debug_log("_setup_frames called")
-        # -- Focus Frame --
-        self.focus_frame = ctk.CTkFrame(self.root)
-        self._setup_focus_view_widgets()
+    def switch_view(self, view_name):
+        """Hide all frames, then show the requested one."""
+        self._debug_log(f"switch_view called with view_name={view_name}")
 
-        # -- Stats Frame --
-        self.stats_frame = ctk.CTkFrame(self.root)
-        self._setup_stats_view_widgets()
+        # Hide any frame that might be on-screen
+        for frame in self.views.values():
+            frame.pack_forget()
+
+        # Show the requested frame
+        self.views[view_name].pack(fill="both", expand=True)
+        self.current_view = view_name
+
+        # Rebind or unbind certain keys based on the view
+        if view_name == "Focus":
+            self.root.bind("<Return>", self.toggle_timer)
+            self.root.bind("<space>", self.toggle_timer)
+            self.root.unbind("<Escape>")
+        else:
+            self.root.unbind("<Return>")
+            self.root.unbind("<space>")
+            self.root.unbind("<Escape>")
 
     def _setup_focus_view_widgets(self):
         """Layout the timer display and controls inside the focus_frame."""
@@ -127,26 +157,12 @@ class MainUI:
     def show_focus_view(self):
         """Show the focus (timer) frame and hide the stats frame."""
         self._debug_log("Showing Focus View.")
-        self.stats_frame.pack_forget()
-        self.focus_frame.pack(fill="both", expand=True)
-
-        self.root.bind("<Return>", self.toggle_timer)
-        self.root.bind("<space>", self.toggle_timer)
-
-        # Unbind alert-specific keys
-        self.root.unbind("<Escape>")
+        self.switch_view("Focus")
 
     def show_stats_view(self):
         """Show the stats frame and hide the focus (timer) frame."""
         self._debug_log("Showing Stats View.")
-        self.focus_frame.pack_forget()
-        self.stats_frame.pack(fill="both", expand=True)
-
-        # Unbind alert/timer-specific keys
-        self.root.unbind("<Return>")
-        self.root.unbind("<space>")
-        self.root.unbind("<Escape>")
-
+        self.switch_view("Stats")
         self.statistics_view.update_statistics()
 
     def update_buttons(self):
@@ -229,8 +245,9 @@ class MainUI:
 
         # Make clear and make fullscreen the main window
         self.root.attributes("-fullscreen", True)
-        self.focus_frame.pack_forget()
-        self.stats_frame.pack_forget()
+        # Hide all main frames
+        for frame in self.views.values():
+            frame.pack_forget()
 
         # Create the alert message label
         self.alert_message_label = ctk.CTkLabel(
@@ -273,7 +290,6 @@ class MainUI:
             self.show_focus_view()
         else:
             self.show_stats_view()
-
 
     def open_settings_window(self):
         """Opens the settings window for timer configuration."""
