@@ -1,4 +1,5 @@
 # src/tomatix/ui/main_ui.py
+import webbrowser
 import customtkinter as ctk
 import tkinter as tk
 from datetime import datetime
@@ -29,9 +30,11 @@ class MainUI:
         # Keep track of the current view
         self.current_view = "Focus"
 
-        # Create frames (Focus and Stats)
+        # Create frames
         self.focus_frame = None
         self.stats_frame = None
+        self.donation_frame = None
+
         self.views = {}  # Will hold references to frames by name
 
         self._setup_frames()
@@ -40,8 +43,8 @@ class MainUI:
         # Initialize the UI update loop
         self.update_ui()
 
-        # Show the Focus view on startup
-        self.show_focus_view()
+        # Switch to the Focus view on startup
+        self.switch_view("Focus")
 
     def _debug_log(self, message):
         if self.debug:
@@ -59,8 +62,11 @@ class MainUI:
         self.menu_bar.add_command(label="Stats", command=self.toggle_view)
         self.toggle_cmd_index = self.menu_bar.index("end")
 
-        # Add the settings command
+        # Settings command
         self.menu_bar.add_command(label="⚙", command=self.open_settings_window)
+
+        # Donate command
+        self.menu_bar.add_command(label="♨", command=lambda: self.switch_view("Donation"))
 
     def _setup_frames(self):
         """Create the two main frames: Focus and Stats."""
@@ -73,10 +79,15 @@ class MainUI:
         self.stats_frame = ctk.CTkFrame(self.root)
         self._setup_stats_view_widgets()
 
+        # -- Donations Frame --
+        self.donation_frame = ctk.CTkFrame(self.root)
+        self._setup_donation_view()
+
         # Put them in a dictionary for easy switching
         self.views = {
             "Focus": self.focus_frame,
-            "Stats": self.stats_frame
+            "Stats": self.stats_frame,
+            "Donation": self.donation_frame,
         }
 
     def toggle_view(self):
@@ -86,11 +97,11 @@ class MainUI:
         self._debug_log("toggle_view called")
 
         if self.current_view == "Focus":
-            self.show_stats_view()
+            self.switch_view("Stats")
             self.menu_bar.entryconfig(self.toggle_cmd_index, label="Tomatix")
             self.current_view = "Stats"
         else:
-            self.show_focus_view()
+            self.switch_view("Focus")
             self.menu_bar.entryconfig(self.toggle_cmd_index, label="Stats")
             self.current_view = "Focus"
 
@@ -111,6 +122,11 @@ class MainUI:
             self.root.bind("<Return>", self.toggle_timer)
             self.root.bind("<space>", self.toggle_timer)
             self.root.unbind("<Escape>")
+        elif view_name == "Stats":
+            self.root.unbind("<Return>")
+            self.root.unbind("<space>")
+            self.root.unbind("<Escape>")
+            self.statistics_view.update_statistics()
         else:
             self.root.unbind("<Return>")
             self.root.unbind("<space>")
@@ -154,16 +170,39 @@ class MainUI:
         self._debug_log("_setup_stats_view_widgets called")
         self.statistics_view = StatisticsView(self.stats_frame, self.timer_controller, debug=self.debug)
 
-    def show_focus_view(self):
-        """Show the focus (timer) frame and hide the stats frame."""
-        self._debug_log("Showing Focus View.")
-        self.switch_view("Focus")
+    def _setup_donation_view(self):
+        """Create the donation frame layout."""
+        # Donation message
+        donation_label = ctk.CTkLabel(
+            self.donation_frame,
+            text="Thank you for using Tomatix! 🎉\n\nThis app is free, but donations help sustain its development. "
+                 "For example, one day we might afford a DB to sync your progress!",
+            font=("Helvetica", 16),
+            wraplength=250,
+            justify="center"
+        )
+        donation_label.pack(pady=(20, 10))
 
-    def show_stats_view(self):
-        """Show the stats frame and hide the focus (timer) frame."""
-        self._debug_log("Showing Stats View.")
-        self.switch_view("Stats")
-        self.statistics_view.update_statistics()
+        # Donate button
+        donate_button = ctk.CTkButton(
+            self.donation_frame,
+            text="Donate",
+            command=self.open_donation_page
+        )
+        donate_button.pack(pady=(10, 20))
+
+        # Back to timer button
+        back_button = ctk.CTkButton(
+            self.donation_frame,
+            text="Back to Timer",
+            command=lambda: self.switch_view("Focus")
+        )
+        back_button.pack()
+
+    def open_donation_page(self):
+        """Open the donation page in the user's default browser."""
+        url = ""
+        webbrowser.open(url)
 
     def update_buttons(self):
         """Update button visibility based on the current timer state."""
@@ -286,10 +325,7 @@ class MainUI:
         self.root.attributes("-fullscreen", False)
 
         # Restore the timer view
-        if self.current_view == "Focus":
-            self.show_focus_view()
-        else:
-            self.show_stats_view()
+        self.switch_view("Focus")
 
     def open_settings_window(self):
         """Opens the settings window for timer configuration."""
