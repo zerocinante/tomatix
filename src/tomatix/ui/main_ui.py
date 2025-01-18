@@ -204,7 +204,7 @@ class MainUI:
 
     def open_donation_page(self):
         """Open the donation page in the user's default browser."""
-        url = ""
+        url = "https://buymeacoffee.com/zerocinante"
         webbrowser.open(url)
 
     def update_buttons(self):
