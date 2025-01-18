@@ -24,8 +24,14 @@ class MainUI:
         self.root = root
         self._debug_log("__init__ called")
 
-        # Setup sound file path
-        self.sound_file = str(Path(__file__).parent.parent / "resources" / "notification.wav")
+        # Setup sound file path using package resources
+        import importlib.resources
+        try:
+            with importlib.resources.files('tomatix.resources').joinpath('notification.wav') as sound_path:
+                self.sound_file = str(sound_path)
+        except Exception as e:
+            self._debug_log(f"Error loading sound file: {e}")
+            self.sound_file = None
 
         # Timer controller
         self.timer_controller = TimerController(debug=self.debug)
