@@ -1,12 +1,12 @@
 # Tomatix Timer
 
-### Why Tomatix?
+## Why Tomatix?
 
 - **Simple & Effective**: No clutter, no distractions—just a timer that helps you focus.
 - **DND Workflow**: Tired of using "*pleb*" focus timers that demand notifications stay ON, letting emails and messages ruin your flow? **Tomatix** flips the script—focus deeply, and fullscreen alerts will call you back when it’s break time.
 - **Built to Work**: Developed while using it, so it’s practical and reliable.
 
-### Getting Started
+## Getting Started
 
 ```bash
 # Create a virtual environment
@@ -19,6 +19,6 @@ source .venv/bin/activate
 pip install .
 ```
 
-### Contributions
+## Contributions
 
 All ideas are welcome, contribute away. Focus (pocus) comes first.

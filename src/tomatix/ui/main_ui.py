@@ -172,18 +172,15 @@ class MainUI:
 
     def _setup_donation_view(self):
         """Create the donation frame layout."""
-        # Donation message
         donation_label = ctk.CTkLabel(
             self.donation_frame,
-            text="Thank you for using Tomatix! 🎉\n\nThis app is free, but donations help sustain its development. "
-                 "For example, one day we might afford a DB to sync your progress!",
+            text="Thank you for using Tomatix! 🎉\n\nThis app is free, but donations help sustain its development.",
             font=("Helvetica", 16),
             wraplength=250,
             justify="center"
         )
         donation_label.pack(pady=(20, 10))
 
-        # Donate button
         donate_button = ctk.CTkButton(
             self.donation_frame,
             text="Donate",
@@ -191,7 +188,13 @@ class MainUI:
         )
         donate_button.pack(pady=(10, 20))
 
-        # Back to timer button
+        feedback_button = ctk.CTkButton(
+            self.donation_frame,
+            text="Give Feedback",
+            command=lambda: webbrowser.open("https://forms.gle/ZcZjNw5ZXupr4Rug7"),
+        )
+        feedback_button.pack(pady=(10, 20))
+
         back_button = ctk.CTkButton(
             self.donation_frame,
             text="Back to Timer",
