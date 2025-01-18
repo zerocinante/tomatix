@@ -3,6 +3,9 @@ import webbrowser
 import customtkinter as ctk
 import tkinter as tk
 from datetime import datetime
+from pathlib import Path
+from playsound import playsound
+import threading
 
 from tomatix.ui.statistics_view import StatisticsView
 from tomatix.core.timer_controller import TimerController
@@ -20,6 +23,9 @@ class MainUI:
         self.debug = debug
         self.root = root
         self._debug_log("__init__ called")
+
+        # Setup sound file path
+        self.sound_file = str(Path(__file__).parent.parent / "resources" / "notification.wav")
 
         # Timer controller
         self.timer_controller = TimerController(debug=self.debug)
@@ -274,12 +280,22 @@ class MainUI:
         self._debug_log(f"handle_timer_completion called with ended_mode={ended_mode}")
         self.statistics_view.update_statistics()
 
+        # Play notification sound in a separate thread to avoid UI freezing
+        threading.Thread(target=self._play_notification_sound, daemon=True).start()
+
         if ended_mode == "Focus Round":
             self.show_fullscreen_alert("Focus Round complete! Time for a recharge!")
         elif ended_mode == "Recharge":
             self.show_fullscreen_alert("Recharge over! Back to work!")
         elif ended_mode == "Extended Recharge":
             self.show_fullscreen_alert("Extended Recharge over! Let's get productive!")
+
+    def _play_notification_sound(self):
+        """Play the notification sound."""
+        try:
+            playsound(self.sound_file)
+        except Exception as e:
+            self._debug_log(f"Error playing sound: {e}")
 
     def show_fullscreen_alert(self, message):
         """Displays a full-screen alert for timer completion."""
