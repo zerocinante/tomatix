@@ -285,15 +285,20 @@ class MainUI:
         """Displays a full-screen alert for timer completion."""
         self._debug_log("show_fullscreen_alert called")
 
-        # Make clear and make fullscreen the main window
-        self.root.attributes("-fullscreen", True)
-        # Hide all main frames
-        for frame in self.views.values():
-            frame.pack_forget()
+        # Create a new top-level window for the alert
+        self.alert_window = ctk.CTkToplevel(self.root)
+        self.alert_window.title("Timer Complete")
+
+        # Make it fullscreen and keep it on top
+        self.alert_window.attributes("-fullscreen", True)
+        self.alert_window.attributes("-topmost", True)
+
+        # Prevent the window from being minimized
+        self.alert_window.protocol("WM_DELETE_WINDOW", lambda: None)  # Disable close button
 
         # Create the alert message label
         self.alert_message_label = ctk.CTkLabel(
-            self.root,
+            self.alert_window,
             text=message,
             font=("Helvetica", 48),
             text_color="white",
@@ -303,29 +308,32 @@ class MainUI:
 
         # Create the close button
         self.alert_close_button = ctk.CTkButton(
-            self.root,
+            self.alert_window,
             text="Close",
             command=self.dismiss_fullscreen_alert,
             font=("Helvetica", 24)
         )
         self.alert_close_button.pack(pady=20)
 
-        self.root.bind("<Escape>", self.dismiss_fullscreen_alert)
-        self.root.bind("<Return>", self.dismiss_fullscreen_alert)
-        self.root.bind("<space>", self.dismiss_fullscreen_alert)
+        # Bind keyboard shortcuts
+        self.alert_window.bind("<Escape>", self.dismiss_fullscreen_alert)
+        self.alert_window.bind("<Return>", self.dismiss_fullscreen_alert)
+        self.alert_window.bind("<space>", self.dismiss_fullscreen_alert)
+
+        # Force focus on the alert window
+        self.alert_window.focus_force()
 
     def dismiss_fullscreen_alert(self, event=None):
         """Dismiss the fullscreen alert and restore the timer view."""
         self._debug_log("dismiss_fullscreen_alert called")
 
-        # Destroy the alert message and button
-        if hasattr(self, 'alert_message_label'):
-            self.alert_message_label.destroy()
-        if hasattr(self, 'alert_close_button'):
-            self.alert_close_button.destroy()
+        # Destroy the alert window
+        if hasattr(self, 'alert_window'):
+            self.alert_window.destroy()
+            delattr(self, 'alert_window')
 
-        # Exit fullscreen mode
-        self.root.attributes("-fullscreen", False)
+        # Restore focus to the main window
+        self.root.focus_force()
 
         # Restore the timer view
         self.switch_view("Focus")
