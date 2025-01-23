@@ -162,10 +162,11 @@ class FocusView(BaseView):
         self._update_buttons(state)
 
     def update_ui(self):
-        """Update the time display."""
-        state = self.timer_controller.get_state()
-        remaining = state["remaining_time"]
+        """Update the time display and check timer completion."""
+        # Get updated state (this also checks for completion)
+        state = self.timer_controller.update()
 
+        remaining = state["remaining_time"]
         minutes = int(remaining // 60)
         seconds = int(remaining % 60)
         time_text = f"{minutes:02d}:{seconds:02d}"
