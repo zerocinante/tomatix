@@ -152,3 +152,13 @@ class FocusView(ctk.CTkFrame):
         time_text = f"{minutes:02d}:{seconds:02d}"
 
         self.time_label.configure(text=time_text)
+
+    def bind_keys(self, root):
+        """Bind view-specific keyboard shortcuts."""
+        root.bind("<Return>", self.on_toggle)
+        root.bind("<space>", self.on_toggle)
+
+    def unbind_keys(self, root):
+        """Unbind view-specific keyboard shortcuts."""
+        root.unbind("<Return>")
+        root.unbind("<space>")

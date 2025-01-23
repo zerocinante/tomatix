@@ -39,3 +39,11 @@ class StatisticsView(ctk.CTkFrame):
         # Update the stats label with today's data
         stats_text = f"Today: {total_focus_rounds} Focus Rounds, {total_minutes} minutes"
         self.stats_label.configure(text=stats_text)
+
+    def bind_keys(self, root):
+        """Bind view-specific keyboard shortcuts."""
+        pass
+
+    def unbind_keys(self, root):
+        """Unbind view-specific keyboard shortcuts."""
+        pass

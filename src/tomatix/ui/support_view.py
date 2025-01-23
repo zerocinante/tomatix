@@ -68,3 +68,11 @@ class SupportView(ctk.CTkFrame):
         """Open the feedback form in the default browser."""
         self._debug_log("_open_feedback_link called")
         webbrowser.open("https://forms.gle/ZcZjNw5ZXupr4Rug7")
+
+    def bind_keys(self, root):
+        """Bind view-specific keyboard shortcuts."""
+        pass
+
+    def unbind_keys(self, root):
+        """Unbind view-specific keyboard shortcuts."""
+        pass

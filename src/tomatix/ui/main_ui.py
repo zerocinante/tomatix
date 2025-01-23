@@ -99,31 +99,19 @@ class MainUI:
         """Hide all frames, then show the requested one."""
         self._debug_log(f"switch_view called with view_name={view_name}")
 
-        # Hide any frame that might be on-screen
+        # Hide any frame that might be on-screen and unbind their keys
         for frame in self.views.values():
             frame.pack_forget()
+            frame.unbind_keys(self.root)
 
-        # Show the requested frame
+        # Show the requested frame and bind its keys
         self.views[view_name].pack(fill="both", expand=True)
+        self.views[view_name].bind_keys(self.root)
         self.current_view = view_name
-
-        # Update view-specific bindings
-        self._update_keybindings(view_name)
 
         # Refresh stats if showing stats view
         if view_name == "Stats":
             self.views["Stats"].update_statistics()
-
-    def _update_keybindings(self, view_name):
-        """Update keyboard shortcuts based on current view."""
-        # Unbind all shortcuts first
-        for key in ["<Return>", "<space>", "<Escape>"]:
-            self.root.unbind(key)
-
-        # Bind shortcuts for Focus view
-        if view_name == "Focus":
-            self.root.bind("<Return>", self.toggle_timer)
-            self.root.bind("<space>", self.toggle_timer)
 
     def toggle_timer(self, event=None):
         """Start or pause the timer."""
