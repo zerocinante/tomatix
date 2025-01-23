@@ -3,11 +3,11 @@ import customtkinter as ctk
 import tkinter as tk
 from datetime import datetime
 
-from tomatix.ui.statistics_view import StatisticsView
-from tomatix.ui.focus_view import FocusView
-from tomatix.ui.support_view import SupportView
-from tomatix.ui.settings_window import SettingsWindow
-from tomatix.ui.alert_window import AlertWindow
+from tomatix.ui.views.statistics_view import StatisticsView
+from tomatix.ui.views.focus_view import FocusView
+from tomatix.ui.views.support_view import SupportView
+from tomatix.ui.windows.settings_window import SettingsWindow
+from tomatix.ui.windows.alert_window import AlertWindow
 from tomatix.core.timer_controller import TimerController
 
 class MainUI:
