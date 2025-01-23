@@ -1,22 +1,14 @@
 import customtkinter as ctk
 import webbrowser
 from datetime import datetime
+from tomatix.ui.views.base_view import BaseView
 
-class SupportView(ctk.CTkFrame):
+class SupportView(BaseView):
     """View for displaying support options (donations and feedback)."""
 
     def __init__(self, parent, on_back=None, debug=False):
-        super().__init__(parent)
-        self.debug = debug
-        self.on_back = on_back
-        self._debug_log("__init__ called")
-
+        super().__init__(parent, on_back, debug)
         self._setup_ui()
-
-    def _debug_log(self, message):
-        if self.debug:
-            now = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
-            print(f"[DEBUG {self.__class__.__name__}] {now} - {message}")
 
     def _setup_ui(self):
         """Create and arrange the UI elements."""
@@ -50,14 +42,8 @@ class SupportView(ctk.CTkFrame):
             width=200
         ).pack(pady=(0, 10))
 
-        # Back button
-        if self.on_back:
-            ctk.CTkButton(
-                self,
-                text="Back",
-                command=self.on_back,
-                width=200
-            ).pack(pady=(10, 0))
+        # Add back button from base class
+        self._add_back_button()
 
     def _open_donation_link(self):
         """Open the donation link in the default browser."""
@@ -68,11 +54,3 @@ class SupportView(ctk.CTkFrame):
         """Open the feedback form in the default browser."""
         self._debug_log("_open_feedback_link called")
         webbrowser.open("https://forms.gle/ZcZjNw5ZXupr4Rug7")
-
-    def bind_keys(self, root):
-        """Bind view-specific keyboard shortcuts."""
-        pass
-
-    def unbind_keys(self, root):
-        """Unbind view-specific keyboard shortcuts."""
-        pass

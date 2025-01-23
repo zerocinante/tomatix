@@ -60,6 +60,7 @@ class MainUI:
             "Stats": StatisticsView(
                 self.root,
                 self.timer_controller,
+                on_back=lambda: self.switch_view("Focus"),
                 debug=self.debug
             ),
             "Support": SupportView(
@@ -76,13 +77,10 @@ class MainUI:
         self.menu_bar = tk.Menu(self.root)
         self.root.config(menu=self.menu_bar)
 
-        # Toggle command flips between Focus and Stats
-        self.menu_bar.add_command(label="Stats", command=self.toggle_view)
-        self.toggle_cmd_index = self.menu_bar.index("end")
-
-        # Settings and Donate commands
-        self.menu_bar.add_command(label="⚙", command=self.open_settings_window)
-        self.menu_bar.add_command(label="♨", command=lambda: self.switch_view("Support"))
+        # Add all navigation buttons
+        self.menu_bar.add_command(label="📊", command=lambda: self.switch_view("Stats"))  # Stats
+        self.menu_bar.add_command(label="⚙", command=self.open_settings_window)          # Settings
+        self.menu_bar.add_command(label="♨", command=lambda: self.switch_view("Support")) # Support
 
     def toggle_view(self):
         """Toggle between Focus and Stats views."""
@@ -90,10 +88,8 @@ class MainUI:
 
         if self.current_view == "Focus":
             self.switch_view("Stats")
-            self.menu_bar.entryconfig(self.toggle_cmd_index, label="Tomatix")
         else:
             self.switch_view("Focus")
-            self.menu_bar.entryconfig(self.toggle_cmd_index, label="Stats")
 
     def switch_view(self, view_name):
         """Hide all frames, then show the requested one."""

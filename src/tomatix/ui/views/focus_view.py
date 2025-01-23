@@ -1,12 +1,12 @@
 import customtkinter as ctk
 from datetime import datetime
+from tomatix.ui.views.base_view import BaseView
 
-class FocusView(ctk.CTkFrame):
+class FocusView(BaseView):
     """Main timer view showing the countdown and controls."""
 
     def __init__(self, parent, timer_controller, on_toggle=None, on_mark_done=None, debug=False):
-        super().__init__(parent)
-        self.debug = debug
+        super().__init__(parent, debug=debug, on_back=None)  # Pass debug as keyword argument
         self.timer_controller = timer_controller
         self.on_toggle = on_toggle
         self.on_mark_done = on_mark_done
