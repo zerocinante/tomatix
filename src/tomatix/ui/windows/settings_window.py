@@ -13,6 +13,9 @@ class SettingsWindow(ctk.CTkToplevel):
         self.title("Settings")
         self.geometry("300x450")
 
+        # Bind Escape key to close
+        self.bind("<Escape>", lambda e: self.destroy())
+
         self._setup_ui()
 
         # Make window modal

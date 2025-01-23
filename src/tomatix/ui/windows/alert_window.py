@@ -32,7 +32,7 @@ class AlertWindow(ctk.CTkToplevel):
         self.transient(self.master)
         self.grab_set()
 
-        # Bind key to close
+        # Bind keys to close
         self.bind("<Escape>", lambda e: self.close())
         self.bind("<Return>", lambda e: self.close())
         self.bind("<space>", lambda e: self.close())

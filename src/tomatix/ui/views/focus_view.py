@@ -166,6 +166,7 @@ class FocusView(BaseView):
 
     def bind_keys(self, root):
         """Bind view-specific keyboard shortcuts."""
+        # Don't call super().bind_keys() since Focus view doesn't need Escape
         root.bind("<Return>", self.on_toggle)
         root.bind("<space>", self.on_toggle)
 

@@ -35,11 +35,13 @@ class BaseView(ctk.CTkFrame):
 
     def bind_keys(self, root):
         """Bind view-specific keyboard shortcuts."""
-        pass
+        if self.on_back:  # Only bind Escape if there's a back action
+            root.bind("<Escape>", lambda e: self.on_back())
 
     def unbind_keys(self, root):
         """Unbind view-specific keyboard shortcuts."""
-        pass
+        if self.on_back:
+            root.unbind("<Escape>")
 
     def _on_configure(self, event):
         """Handle resize events by updating window size."""
