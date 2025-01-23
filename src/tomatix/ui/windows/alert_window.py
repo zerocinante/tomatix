@@ -65,35 +65,56 @@ class AlertWindow(ctk.CTkToplevel):
 
     def _setup_ui(self, message):
         """Create and arrange the UI elements."""
-        # Center the content
-        self.grid_rowconfigure(0, weight=1)
-        self.grid_columnconfigure(0, weight=1)
+        # Center container
+        container = ctk.CTkFrame(self, fg_color="#2B2B2B")
+        container.place(relx=0.5, rely=0.5, anchor="center")
 
-        # Create a frame for the content
-        content = ctk.CTkFrame(self, fg_color="transparent")
-        content.grid(row=0, column=0, sticky="nsew")
+        # Message frame
+        message_frame = ctk.CTkFrame(container, fg_color="transparent")
+        message_frame.pack(pady=(40, 30), padx=60)
 
-        # Make the content frame center its contents vertically
-        content.grid_rowconfigure(0, weight=1)
-        content.grid_rowconfigure(2, weight=1)
-        content.grid_columnconfigure(0, weight=1)
-
-        message_label = ctk.CTkLabel(
-            content,
-            text=message,
-            font=("Helvetica", 36),
-            text_color="white",
+        # Timer icon
+        timer_label = ctk.CTkLabel(
+            message_frame,
+            text="⏱",
+            font=("SF Pro Display", 48),
+            text_color="#3B8ED0"
         )
-        message_label.grid(row=1, column=0, pady=(0, 40))
+        timer_label.pack(pady=(0, 20))
 
-        # Close button
-        close_button = ctk.CTkButton(
-            content,
+        # Message
+        message_label = ctk.CTkLabel(
+            message_frame,
+            text=message,
+            font=("SF Pro Display", 24),
+            text_color="#FFFFFF"
+        )
+        message_label.pack()
+
+        # Subtitle
+        subtitle = ctk.CTkLabel(
+            message_frame,
+            text="Press Space or click Continue",
+            font=("SF Pro Display", 14),
+            text_color="#666666"
+        )
+        subtitle.pack(pady=(10, 0))
+
+        # Button frame
+        button_frame = ctk.CTkFrame(container, fg_color="transparent")
+        button_frame.pack(pady=(0, 40))
+
+        # Continue button
+        continue_button = ctk.CTkButton(
+            button_frame,
             text="Continue",
             command=self.close,
-            width=200
+            width=200,
+            height=32,
+            corner_radius=16,
+            font=("SF Pro Display", 14)
         )
-        close_button.grid(row=2, column=0, pady=(0, 0))
+        continue_button.pack()
 
     def close(self, event=None):
         """Close the alert window."""
