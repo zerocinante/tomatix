@@ -93,9 +93,10 @@ class MainUI:
 
         # Simplified icons with tooltips
         menu_items = {
+            "Focus": ("⏱", lambda: self.switch_view("Focus")),
             "Stats": ("📊", lambda: self.switch_view("Stats")),
             "Settings": ("⚙", self.open_settings_window),
-            "Support": ("♥", lambda: self.switch_view("Support"))
+            "Support": ("♥", lambda: self.switch_view("Support")),
         }
 
         for label, (icon, command) in menu_items.items():
