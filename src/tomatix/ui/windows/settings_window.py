@@ -4,6 +4,11 @@ from datetime import datetime
 class SettingsWindow(ctk.CTkToplevel):
     """Configuration window for timer durations."""
 
+    # Maximum allowed values in minutes
+    MAX_FOCUS_MINUTES = 480     # 8 hours
+    MAX_RECHARGE_MINUTES = 120  # 2 hours
+    MAX_BIG_RECHARGE_MINUTES = 240  # 4 hours
+
     def __init__(self, parent, timer_controller, debug=False):
         super().__init__(parent)
         self.debug = debug
@@ -11,7 +16,7 @@ class SettingsWindow(ctk.CTkToplevel):
         self._debug_log("__init__ called")
 
         self.title("Settings")
-        self.geometry("300x450")
+        self.geometry("300x500")
 
         # Bind Escape key to close
         self.bind("<Escape>", lambda e: self.destroy())
@@ -29,7 +34,7 @@ class SettingsWindow(ctk.CTkToplevel):
 
     def _setup_ui(self):
         """Create and arrange the UI elements."""
-        # Main container
+        # Main container with padding
         container = ctk.CTkFrame(self, fg_color="transparent")
         container.pack(padx=20, pady=20, fill="both", expand=True)
 
@@ -45,7 +50,7 @@ class SettingsWindow(ctk.CTkToplevel):
         settings_frame = ctk.CTkFrame(container, fg_color="transparent")
         settings_frame.pack(fill="x", pady=(0, 20))
 
-        # Focus Round duration
+        # Create settings groups
         self._create_setting_group(
             settings_frame,
             "Focus Round",
@@ -53,7 +58,6 @@ class SettingsWindow(ctk.CTkToplevel):
             self.timer_controller.timer.focus_round_duration // 60
         )
 
-        # Recharge duration
         self._create_setting_group(
             settings_frame,
             "Recharge",
@@ -61,7 +65,6 @@ class SettingsWindow(ctk.CTkToplevel):
             self.timer_controller.timer.recharge // 60
         )
 
-        # Extended Recharge duration
         self._create_setting_group(
             settings_frame,
             "Extended Recharge",
@@ -69,17 +72,20 @@ class SettingsWindow(ctk.CTkToplevel):
             self.timer_controller.timer.big_recharge // 60
         )
 
-        # Error label (hidden by default)
+        # Error label
         self.error_label = ctk.CTkLabel(
             container,
-            text="Please enter valid numbers",
+            text="",
             text_color="#FF6B6B",
-            font=("SF Pro Display", 14)
+            font=("SF Pro Display", 14),
+            wraplength=260
         )
+        self.error_label.pack(pady=(0, 10))  # Pack it immediately but hide it
+        self.error_label.pack_forget()  # Hide it until needed
 
-        # Buttons frame
+        # Buttons frame at the bottom
         button_frame = ctk.CTkFrame(container, fg_color="transparent")
-        button_frame.pack(fill="x", pady=(20, 0))
+        button_frame.pack(fill="x", pady=(10, 0))
 
         # Save button
         ctk.CTkButton(
@@ -89,7 +95,7 @@ class SettingsWindow(ctk.CTkToplevel):
             height=32,
             corner_radius=16,
             font=("SF Pro Display", 14)
-        ).pack(fill="x")
+        ).pack(fill="x", pady=(0, 10))
 
         # Cancel button
         ctk.CTkButton(
@@ -101,17 +107,24 @@ class SettingsWindow(ctk.CTkToplevel):
             font=("SF Pro Display", 14),
             fg_color="transparent",
             hover_color="#404040"
-        ).pack(fill="x", pady=(10, 0))
+        ).pack(fill="x")
 
     def _create_setting_group(self, parent, label_text, unit_text, default_value):
         """Create a grouped setting with label and entry."""
         frame = ctk.CTkFrame(parent, fg_color="transparent")
         frame.pack(fill="x", pady=(0, 15))
 
-        # Label
+        # Add max value to label
+        max_value = {
+            "Focus Round": self.MAX_FOCUS_MINUTES,
+            "Recharge": self.MAX_RECHARGE_MINUTES,
+            "Extended Recharge": self.MAX_BIG_RECHARGE_MINUTES
+        }[label_text]
+
+        # Label with max value hint
         ctk.CTkLabel(
             frame,
-            text=label_text,
+            text=f"{label_text} (1-{max_value})",
             font=("SF Pro Display", 16),
             text_color="#FFFFFF"
         ).pack(anchor="w")
@@ -143,11 +156,32 @@ class SettingsWindow(ctk.CTkToplevel):
         """Save the new settings and close the window."""
         self._debug_log("save_settings called")
         try:
-            focus = int(self.focus_round_entry.get()) * 60
-            recharge = int(self.recharge_entry.get()) * 60
-            big_recharge = int(self.extended_recharge_entry.get()) * 60
+            # Convert inputs to integers
+            focus = int(self.focus_round_entry.get())
+            recharge = int(self.recharge_entry.get())
+            big_recharge = int(self.extended_recharge_entry.get())
 
-            self.timer_controller.save_settings(focus, recharge, big_recharge)
+            # Validate ranges
+            if not (1 <= focus <= self.MAX_FOCUS_MINUTES):
+                raise ValueError(f"Focus duration must be between 1 and {self.MAX_FOCUS_MINUTES} minutes")
+            if not (1 <= recharge <= self.MAX_RECHARGE_MINUTES):
+                raise ValueError(f"Recharge duration must be between 1 and {self.MAX_RECHARGE_MINUTES} minutes")
+            if not (1 <= big_recharge <= self.MAX_BIG_RECHARGE_MINUTES):
+                raise ValueError(f"Extended recharge duration must be between 1 and {self.MAX_BIG_RECHARGE_MINUTES} minutes")
+
+            # Convert to seconds for the timer
+            self.timer_controller.save_settings(
+                focus * 60,
+                recharge * 60,
+                big_recharge * 60
+            )
             self.destroy()
-        except ValueError:
-            self.error_label.pack(pady=(10, 0))
+        except ValueError as e:
+            # Show specific error message
+            if str(e).startswith("invalid literal"):
+                error_text = "Please enter valid numbers"
+            else:
+                error_text = str(e)
+
+            self.error_label.configure(text=error_text)
+            self.error_label.pack(pady=(0, 10))  # Simply pack it when needed
