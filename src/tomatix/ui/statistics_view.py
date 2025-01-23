@@ -13,6 +13,9 @@ class StatisticsView(ctk.CTkFrame):
         self._debug_log("__init__ called")
         self.timer_controller = timer_controller
 
+        # Subscribe to timer completion events
+        self.timer_controller.add_mode_complete_callback(self._on_timer_complete)
+
         # Display label for today's stats
         self.stats_label = ctk.CTkLabel(
             self,  # Use self instead of root as parent
@@ -45,5 +48,16 @@ class StatisticsView(ctk.CTkFrame):
         pass
 
     def unbind_keys(self, root):
-        """Unbind view-specific keyboard shortcuts."""
-        pass
+        """Clean up when view is hidden."""
+        # No key bindings to unbind, but we should remove our callback
+        self.timer_controller.remove_mode_complete_callback(self._on_timer_complete)
+
+    def _on_timer_complete(self, ended_mode):
+        """Handle timer completion events."""
+        self._debug_log(f"_on_timer_complete called with ended_mode={ended_mode}")
+        self.update_statistics()
+
+    def pack(self, *args, **kwargs):
+        """Override pack to update statistics when view becomes visible."""
+        super().pack(*args, **kwargs)
+        self.update_statistics()

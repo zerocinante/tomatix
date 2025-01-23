@@ -24,8 +24,8 @@ class MainUI:
         self.timer_controller = TimerController(debug=self.debug)
 
         # Hook up event handlers
-        self.timer_controller.on_mode_complete = self.handle_timer_completion
-        self.timer_controller.on_state_change = self.handle_state_change
+        self.timer_controller.add_mode_complete_callback(self.handle_timer_completion)
+        self.timer_controller.add_state_change_callback(self.handle_state_change)
 
         # View management
         self.current_view = "Focus"
@@ -109,10 +109,6 @@ class MainUI:
         self.views[view_name].bind_keys(self.root)
         self.current_view = view_name
 
-        # Refresh stats if showing stats view
-        if view_name == "Stats":
-            self.views["Stats"].update_statistics()
-
     def toggle_timer(self, event=None):
         """Start or pause the timer."""
         self._debug_log("toggle_timer called")
@@ -130,9 +126,6 @@ class MainUI:
     def handle_timer_completion(self, ended_mode):
         """Handle completion of a timer cycle."""
         self._debug_log(f"handle_timer_completion called with ended_mode={ended_mode}")
-
-        # Update statistics
-        self.views["Stats"].update_statistics()
 
         # Show completion alert
         message = self._get_completion_message(ended_mode)

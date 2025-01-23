@@ -30,12 +30,16 @@ class TimerController:
             debug=self.debug
         )
 
-        # The UI can set a callback for when a meaningful state changes
-        self.on_state_change = None
-        self._last_comparable_state = None
+        # Replace single callbacks with lists of callbacks
+        self.mode_complete_callbacks = []
+        self.state_change_callbacks = []
 
-        # The UI can set a callback for when a mode finishes
-        self.on_mode_complete = None
+        # Initialize last state for change detection
+        self._last_comparable_state = {
+            "running": False,
+            "mode": self.timer.current_mode,
+            "current_focus_rounds": 0,
+        }
 
         self._load_or_init_settings()
 
@@ -103,13 +107,32 @@ class TimerController:
 
         return state
 
+    def add_mode_complete_callback(self, callback):
+        """Add a callback to be notified when a mode completes."""
+        self._debug_log(f"add_mode_complete_callback called")
+        if callback not in self.mode_complete_callbacks:
+            self.mode_complete_callbacks.append(callback)
+
+    def remove_mode_complete_callback(self, callback):
+        """Remove a mode complete callback."""
+        self._debug_log(f"remove_mode_complete_callback called")
+        if callback in self.mode_complete_callbacks:
+            self.mode_complete_callbacks.remove(callback)
+
+    def add_state_change_callback(self, callback):
+        """Add a callback to be notified when state changes."""
+        self._debug_log(f"add_state_change_callback called")
+        if callback not in self.state_change_callbacks:
+            self.state_change_callbacks.append(callback)
+
+    def remove_state_change_callback(self, callback):
+        """Remove a state change callback."""
+        self._debug_log(f"remove_state_change_callback called")
+        if callback in self.state_change_callbacks:
+            self.state_change_callbacks.remove(callback)
+
     def _handle_completion(self, previous_mode=None):
-        """
-        Called when a cycle ends (either Focus Round or Recharge).
-        1. Log partial or full Focus Round time if we just ended a Focus Round.
-        2. Switch to the next mode.
-        3. Notify the UI via on_mode_complete if provided.
-        """
+        """Called when a cycle ends."""
         previous_mode = previous_mode or self.timer.current_mode
         elapsed_minutes = self.timer.get_elapsed_minutes()
 
@@ -120,8 +143,12 @@ class TimerController:
 
         self.timer.next_mode()
 
-        if self.on_mode_complete:
-            self.on_mode_complete(previous_mode)
+        # Notify all subscribers
+        for callback in self.mode_complete_callbacks:
+            try:
+                callback(previous_mode)
+            except Exception as e:
+                self._debug_log(f"Error in mode complete callback: {e}")
 
         self._check_and_notify_state_change()
 
@@ -139,13 +166,9 @@ class TimerController:
         return 0  # Fallback
 
     def _check_and_notify_state_change(self):
-        """
-        Detects meaningful state changes and triggers the `on_state_change` callback.
-        Excludes `remaining_time` to avoid unnecessary updates.
-        """
+        """Detects meaningful state changes and triggers callbacks."""
         self._debug_log("_check_and_notify_state_change called")
         state = self.get_state()
-        # Build dict that omits `remaining_time`
         comparable_state = {
             "running": state["running"],
             "mode": state["mode"],
@@ -153,8 +176,9 @@ class TimerController:
         }
         if comparable_state != self._last_comparable_state:
             self._last_comparable_state = comparable_state
-            if self.on_state_change:
+            # Notify all subscribers
+            for callback in self.state_change_callbacks:
                 try:
-                    self.on_state_change(state)
+                    callback(state)
                 except Exception as e:
-                    print(f"Error in on_state_change callback: {e}")
+                    self._debug_log(f"Error in state change callback: {e}")
