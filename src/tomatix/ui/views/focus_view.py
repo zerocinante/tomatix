@@ -54,21 +54,23 @@ class FocusView(BaseView):
         info_frame = ctk.CTkFrame(content, fg_color="transparent")
         info_frame.pack(pady=(0, 10))
 
+        # Mode label (top line)
         self.mode_label = ctk.CTkLabel(
             info_frame,
             text="FOCUS",
             font=("SF Pro Display", 12),
             text_color=self.colors["secondary"]
         )
-        self.mode_label.pack(side="left", padx=5)
+        self.mode_label.pack()
 
-        self.rounds_label = ctk.CTkLabel(
+        # Progress label (bottom line)
+        self.progress_label = ctk.CTkLabel(
             info_frame,
-            text="1/4",
+            text="",
             font=("SF Pro Display", 12),
             text_color=self.colors["secondary"]
         )
-        self.rounds_label.pack(side="left", padx=5)
+        self.progress_label.pack()
 
         # Fixed-size button container
         button_container = ctk.CTkFrame(content, fg_color="transparent", height=40)
@@ -142,13 +144,19 @@ class FocusView(BaseView):
         """Update UI elements based on timer state."""
         self._debug_log(f"handle_state_change called with {state}")
 
-        # Update mode label
-        self.mode_label.configure(text=state["mode"])
+        total_cycles = self.timer_controller.timer.cycles
 
-        # Update rounds display
+        # Update mode label with a more intuitive display
         if state["mode"] == "Focus Round":
-            rounds_text = f"{state['current_focus_rounds']}/4"
-            self.rounds_label.configure(text=rounds_text)
+            # Show current round number (add 1 since core counts from 0)
+            current_round = state["current_focus_rounds"] + 1
+            self.mode_label.configure(text=f"ROUND {current_round}")
+            # Show progress on second line
+            self.progress_label.configure(text=f"({current_round}/{total_cycles})")
+        else:
+            # During breaks, just show the mode name
+            self.mode_label.configure(text=state["mode"].upper())
+            self.progress_label.configure(text="")
 
         # Update buttons
         self._update_buttons(state)
