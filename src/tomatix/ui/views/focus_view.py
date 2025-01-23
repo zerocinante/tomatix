@@ -5,14 +5,30 @@ from tomatix.ui.views.base_view import BaseView
 class FocusView(BaseView):
     """Main timer view showing the countdown and controls."""
 
-    def __init__(self, parent, timer_controller, on_toggle=None, on_mark_done=None, debug=False):
-        super().__init__(parent, debug=debug, on_back=None)  # Pass debug as keyword argument
+    def __init__(self, parent, timer_controller, on_toggle=None, on_mark_done=None, colors=None, debug=False):
+        super().__init__(parent, debug=debug, on_back=None)
         self.timer_controller = timer_controller
         self.on_toggle = on_toggle
         self.on_mark_done = on_mark_done
+        self.colors = colors or {  # Fallback colors if none provided
+            "primary": "#3B8ED0",
+            "secondary": "#666666",
+            "background": "#2B2B2B",
+            "text": "#FFFFFF",
+            "success": "#4CAF50",
+            "warning": "#FFC107"
+        }
         self._debug_log("__init__ called")
 
         self._setup_ui()
+        # Explicitly update buttons with initial state
+        initial_state = {
+            "running": False,
+            "remaining_time": self.timer_controller.get_full_time(),
+            "mode": "Focus Round",
+            "current_focus_rounds": 1
+        }
+        self._update_buttons(initial_state)
 
     def _debug_log(self, message):
         if self.debug:
@@ -21,72 +37,67 @@ class FocusView(BaseView):
 
     def _setup_ui(self):
         """Create and arrange the UI elements."""
-        # Mode label (Focus Round, Recharge, etc.)
-        self.mode_label = ctk.CTkLabel(
-            self,
-            text="Focus Round",
-            font=("Helvetica", 24)
-        )
-        self.mode_label.pack(pady=(20, 0))
+        # Use pack instead of grid for more flexible sizing
+        content = ctk.CTkFrame(self, fg_color="transparent")
+        content.pack(padx=10, pady=10, expand=True)
 
-        # Timer display
+        # Compact timer display
         self.time_label = ctk.CTkLabel(
-            self,
+            content,
             text="25:00",
-            font=("Helvetica", 48)
+            font=("SF Pro Display", 36),
+            text_color=self.colors["text"]
         )
-        self.time_label.pack(pady=(20, 0))
+        self.time_label.pack(pady=(0, 10))
 
-        # Current focus rounds label
+        # Info frame (mode and rounds)
+        info_frame = ctk.CTkFrame(content, fg_color="transparent")
+        info_frame.pack(pady=(0, 10))
+
+        self.mode_label = ctk.CTkLabel(
+            info_frame,
+            text="FOCUS",
+            font=("SF Pro Display", 12),
+            text_color=self.colors["secondary"]
+        )
+        self.mode_label.pack(side="left", padx=5)
+
         self.rounds_label = ctk.CTkLabel(
-            self,
-            text="0/4",
-            font=("Helvetica", 24)
+            info_frame,
+            text="1/4",
+            font=("SF Pro Display", 12),
+            text_color=self.colors["secondary"]
         )
-        self.rounds_label.pack(pady=(10, 20))
+        self.rounds_label.pack(side="left", padx=5)
 
-        # Button frame for layout
-        self.button_frame = ctk.CTkFrame(self)
-        self.button_frame.pack(pady=(0, 20))
+        # Fixed-size button container
+        button_container = ctk.CTkFrame(content, fg_color="transparent", height=40)
+        button_container.pack(pady=(0, 10), fill="x")
+        button_container.pack_propagate(False)  # Prevent size changes
+
+        # Button frame inside container
+        self.button_frame = ctk.CTkFrame(button_container, fg_color="transparent")
+        self.button_frame.pack(expand=True)
 
         # Create all possible buttons (initially hidden)
-        self.start_button = ctk.CTkButton(
-            self.button_frame,
-            text="Start",
-            command=self._handle_toggle,
-            width=200
-        )
+        button_configs = [
+            ("start_button", "▶", self._handle_toggle),
+            ("pause_button", "⏸", self._handle_toggle),
+            ("resume_button", "▶", self._handle_toggle),
+            ("reset_button", "⟳", self._handle_reset),
+            ("done_button", "✓", self._handle_mark_done)
+        ]
 
-        self.pause_button = ctk.CTkButton(
-            self.button_frame,
-            text="Pause",
-            command=self._handle_toggle,
-            width=200
-        )
-
-        self.resume_button = ctk.CTkButton(
-            self.button_frame,
-            text="Resume",
-            command=self._handle_toggle,
-            width=200
-        )
-
-        self.reset_button = ctk.CTkButton(
-            self.button_frame,
-            text="Reset",
-            command=self._handle_reset,
-            width=200
-        )
-
-        self.done_button = ctk.CTkButton(
-            self.button_frame,
-            text="Done",
-            command=self._handle_mark_done,
-            width=200
-        )
-
-        # Show initial button state
-        self._update_buttons({"running": False, "remaining_time": self.timer_controller.get_full_time()})
+        for i, (attr_name, symbol, command) in enumerate(button_configs):
+            button = ctk.CTkButton(
+                self.button_frame,
+                text=symbol,
+                command=command,
+                width=30,
+                height=30,
+                corner_radius=15
+            )
+            setattr(self, attr_name, button)
 
     def _handle_toggle(self):
         """Local handler for toggle button."""
@@ -107,25 +118,25 @@ class FocusView(BaseView):
         # Hide all buttons first
         for button in [self.start_button, self.pause_button, self.resume_button,
                       self.reset_button, self.done_button]:
-            button.pack_forget()
+            button.grid_forget()
 
-        running = state["running"]
-        remaining_time = state["remaining_time"]
+        running = state.get("running", False)  # Default to False if not present
+        remaining_time = state.get("remaining_time", self.timer_controller.get_full_time())
         full_time = self.timer_controller.get_full_time()
         timer_started = remaining_time < full_time
 
         if not running:
             if not timer_started:
                 # Timer hasn't started yet - show Start
-                self.start_button.pack(pady=(0, 10))
+                self.start_button.grid(row=0, column=0, padx=5)
             else:
                 # Timer is paused - show Resume and Done
-                self.resume_button.pack(pady=(0, 10))
-                self.done_button.pack()
+                self.resume_button.grid(row=0, column=0, padx=5)
+                self.done_button.grid(row=0, column=1, padx=5)
         else:
             # Timer is running - show Pause and Reset
-            self.pause_button.pack(pady=(0, 10))
-            self.reset_button.pack()
+            self.pause_button.grid(row=0, column=0, padx=5)
+            self.reset_button.grid(row=0, column=1, padx=5)
 
     def handle_state_change(self, state):
         """Update UI elements based on timer state."""

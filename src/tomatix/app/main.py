@@ -16,15 +16,9 @@ def main(debug=False):
 
     root = ctk.CTk()
     root.title("Tomatix Timer")
-    root.geometry("300x300")
 
-    # Create the main UI (which also creates and owns the TimerController)
+    # Create the main UI
     app = MainUI(root, debug=debug)
-
-    # Set initial sizing and allow resizing
-    root.update_idletasks()
-    root.minsize(root.winfo_width(), root.winfo_height())
-    root.resizable(True, True)
 
     if debug:
         print("[DEBUG] main: entering mainloop")

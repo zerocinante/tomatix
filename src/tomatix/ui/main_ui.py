@@ -27,6 +27,16 @@ class MainUI:
         self.timer_controller.add_mode_complete_callback(self.handle_timer_completion)
         self.timer_controller.add_state_change_callback(self.handle_state_change)
 
+        # Custom colors for consistency
+        self.COLORS = {
+            "primary": "#3B8ED0",      # Main accent color
+            "secondary": "#666666",    # Secondary elements
+            "background": "#2B2B2B",   # Dark background
+            "text": "#FFFFFF",         # Text color
+            "success": "#4CAF50",      # For completion states
+            "warning": "#FFC107"       # For alerts/paused states
+        }
+
         # View management
         self.current_view = "Focus"
         self.views = {}
@@ -38,6 +48,11 @@ class MainUI:
 
         # Switch to the Focus view on startup
         self.switch_view("Focus")
+
+        # Add to MainUI.__init__
+        ctk.set_appearance_mode("dark")  # or "light"
+        ctk.set_default_color_theme("blue")  # base color theme
+
 
     def _debug_log(self, message):
         if self.debug:
@@ -55,6 +70,7 @@ class MainUI:
                 self.timer_controller,
                 on_toggle=self.toggle_timer,
                 on_mark_done=self.mark_done,
+                colors=self.COLORS,
                 debug=self.debug
             ),
             "Stats": StatisticsView(
@@ -71,16 +87,24 @@ class MainUI:
         }
 
     def _setup_menu(self):
-        """Creates the menu for switching views + Settings."""
-        self._debug_log("_setup_menu called")
-
-        self.menu_bar = tk.Menu(self.root)
+        """Creates a minimal menu bar."""
+        self.menu_bar = tk.Menu(self.root, bg=self.COLORS["background"], fg=self.COLORS["text"])
         self.root.config(menu=self.menu_bar)
 
-        # Add all navigation buttons
-        self.menu_bar.add_command(label="📊", command=lambda: self.switch_view("Stats"))  # Stats
-        self.menu_bar.add_command(label="⚙", command=self.open_settings_window)          # Settings
-        self.menu_bar.add_command(label="♨", command=lambda: self.switch_view("Support")) # Support
+        # Simplified icons with tooltips
+        menu_items = {
+            "Stats": ("📊", lambda: self.switch_view("Stats")),
+            "Settings": ("⚙", self.open_settings_window),
+            "Support": ("♥", lambda: self.switch_view("Support"))
+        }
+
+        for label, (icon, command) in menu_items.items():
+            self.menu_bar.add_command(
+                label=icon,
+                command=command,
+                background=self.COLORS["background"],
+                foreground=self.COLORS["text"]
+            )
 
     def toggle_view(self):
         """Toggle between Focus and Stats views."""
