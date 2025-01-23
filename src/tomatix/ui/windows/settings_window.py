@@ -9,10 +9,19 @@ class SettingsWindow(ctk.CTkToplevel):
     MAX_RECHARGE_MINUTES = 120  # 2 hours
     MAX_BIG_RECHARGE_MINUTES = 240  # 4 hours
 
-    def __init__(self, parent, timer_controller, debug=False):
+    def __init__(self, parent, timer_controller, colors=None, debug=False):
         super().__init__(parent)
         self.debug = debug
         self.timer_controller = timer_controller
+        self.colors = colors or {  # Fallback colors if none provided
+            "primary": "#FF7F50",
+            "secondary": "#95A5A6",
+            "background": "#2B2B2B",
+            "text": "#FFFFFF",
+            "success": "#2ECC71",
+            "warning": "#F39C12",
+            "accent": "#E67E22"
+        }
         self._debug_log("__init__ called")
 
         self.title("Settings")
@@ -94,7 +103,10 @@ class SettingsWindow(ctk.CTkToplevel):
             command=self.save_settings,
             height=32,
             corner_radius=16,
-            font=("SF Pro Display", 14)
+            font=("SF Pro Display", 14),
+            fg_color=self.colors["primary"],
+            hover_color=self.colors["accent"],
+            text_color=self.colors["text"]
         ).pack(fill="x", pady=(0, 10))
 
         # Cancel button
@@ -106,7 +118,8 @@ class SettingsWindow(ctk.CTkToplevel):
             corner_radius=16,
             font=("SF Pro Display", 14),
             fg_color="transparent",
-            hover_color="#404040"
+            hover_color=self.colors["accent"],
+            text_color=self.colors["text"]
         ).pack(fill="x")
 
     def _create_setting_group(self, parent, label_text, unit_text, default_value):

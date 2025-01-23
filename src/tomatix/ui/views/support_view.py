@@ -5,8 +5,17 @@ from tomatix.ui.views.base_view import BaseView
 class SupportView(BaseView):
     """A minimalist view for support options."""
 
-    def __init__(self, parent, on_back=None, debug=False):
+    def __init__(self, parent, on_back=None, colors=None, debug=False):
         super().__init__(parent, on_back, debug)
+        self.colors = colors or {  # Fallback colors if none provided
+            "primary": "#FF7F50",
+            "secondary": "#95A5A6",
+            "background": "#2B2B2B",
+            "text": "#FFFFFF",
+            "success": "#2ECC71",
+            "warning": "#F39C12",
+            "accent": "#E67E22"
+        }
         self._setup_ui()
 
     def _setup_ui(self):
@@ -43,7 +52,10 @@ class SupportView(BaseView):
             width=200,
             height=32,
             corner_radius=16,
-            font=("SF Pro Display", 14)
+            font=("SF Pro Display", 14),
+            fg_color=self.colors["primary"],
+            hover_color=self.colors["accent"],
+            text_color=self.colors["text"]
         ).pack(pady=(0, 10))
 
         ctk.CTkButton(
@@ -53,7 +65,10 @@ class SupportView(BaseView):
             width=200,
             height=32,
             corner_radius=16,
-            font=("SF Pro Display", 14)
+            font=("SF Pro Display", 14),
+            fg_color=self.colors["primary"],
+            hover_color=self.colors["accent"],
+            text_color=self.colors["text"]
         ).pack(pady=(0, 10))
 
         # Back button at the bottom
@@ -64,7 +79,10 @@ class SupportView(BaseView):
             width=200,
             height=32,
             corner_radius=16,
-            font=("SF Pro Display", 14)
+            font=("SF Pro Display", 14),
+            fg_color="transparent",
+            hover_color=self.colors["accent"],
+            text_color=self.colors["text"]
         ).pack(pady=(0, 20))
 
     def _open_donation_link(self):

@@ -7,11 +7,20 @@ from playsound import playsound
 class AlertWindow(ctk.CTkToplevel):
     """Fullscreen alert window shown when a timer cycle completes."""
 
-    def __init__(self, parent, message, on_close=None, debug=False):
+    def __init__(self, parent, message, on_close=None, colors=None, debug=False):
         super().__init__(parent)
         self.debug = debug
         self.on_close = on_close
         self.message = message
+        self.colors = colors or {  # Fallback colors if none provided
+            "primary": "#FF7F50",
+            "secondary": "#95A5A6",
+            "background": "#2B2B2B",
+            "text": "#FFFFFF",
+            "success": "#2ECC71",
+            "warning": "#F39C12",
+            "accent": "#E67E22"
+        }
         self._debug_log("__init__ called")
 
         # Play notification sound
@@ -76,9 +85,9 @@ class AlertWindow(ctk.CTkToplevel):
         # Timer icon
         timer_label = ctk.CTkLabel(
             message_frame,
-            text="⏱",
+            text="🍅",
             font=("SF Pro Display", 48),
-            text_color="#3B8ED0"
+            text_color="#FF7F50"
         )
         timer_label.pack(pady=(0, 20))
 
@@ -112,7 +121,10 @@ class AlertWindow(ctk.CTkToplevel):
             width=200,
             height=32,
             corner_radius=16,
-            font=("SF Pro Display", 14)
+            font=("SF Pro Display", 14),
+            fg_color=self.colors["primary"],
+            hover_color=self.colors["accent"],
+            text_color=self.colors["text"]
         )
         continue_button.pack()
 

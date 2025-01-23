@@ -29,12 +29,13 @@ class MainUI:
 
         # Custom colors for consistency
         self.COLORS = {
-            "primary": "#3B8ED0",      # Main accent color
-            "secondary": "#666666",    # Secondary elements
+            "primary": "#E8927C",      # Muted coral
+            "secondary": "#A4B0B2",    # Softer gray
             "background": "#2B2B2B",   # Dark background
             "text": "#FFFFFF",         # Text color
-            "success": "#4CAF50",      # For completion states
-            "warning": "#FFC107"       # For alerts/paused states
+            "success": "#7CB69D",      # Desaturated green
+            "warning": "#DEB992",      # Muted orange
+            "accent": "#C17F59"        # Desaturated dark orange
         }
 
         # View management
@@ -50,8 +51,8 @@ class MainUI:
         self.switch_view("Focus")
 
         # Add to MainUI.__init__
-        ctk.set_appearance_mode("dark")  # or "light"
-        ctk.set_default_color_theme("blue")  # base color theme
+        ctk.set_appearance_mode("dark")
+        ctk.set_default_color_theme("dark-blue")  # Less harsh than pure blue
 
 
     def _debug_log(self, message):
@@ -77,11 +78,13 @@ class MainUI:
                 self.root,
                 self.timer_controller,
                 on_back=lambda: self.switch_view("Focus"),
+                colors=self.COLORS,
                 debug=self.debug
             ),
             "Support": SupportView(
                 self.root,
                 on_back=lambda: self.switch_view("Focus"),
+                colors=self.COLORS,
                 debug=self.debug
             )
         }
@@ -93,7 +96,7 @@ class MainUI:
 
         # Simplified icons with tooltips
         menu_items = {
-            "Focus": ("⏱", lambda: self.switch_view("Focus")),
+            "Focus": ("🍅", lambda: self.switch_view("Focus")),
             "Stats": ("📊", lambda: self.switch_view("Stats")),
             "Settings": ("⚙", self.open_settings_window),
             "Support": ("♥", lambda: self.switch_view("Support")),
@@ -150,7 +153,7 @@ class MainUI:
 
         # Show completion alert
         message = self._get_completion_message(ended_mode)
-        AlertWindow(self.root, message, self.switch_view, debug=self.debug)
+        AlertWindow(self.root, message, self.switch_view, colors=self.COLORS, debug=self.debug)
 
     def _get_completion_message(self, ended_mode):
         """Get the appropriate message for the completion alert."""
@@ -177,4 +180,4 @@ class MainUI:
     def open_settings_window(self):
         """Opens the settings window for timer configuration."""
         self._debug_log("open_settings_window called")
-        SettingsWindow(self.root, self.timer_controller, debug=self.debug)
+        SettingsWindow(self.root, self.timer_controller, colors=self.COLORS, debug=self.debug)

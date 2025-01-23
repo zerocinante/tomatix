@@ -97,7 +97,10 @@ class FocusView(BaseView):
                 command=command,
                 width=30,
                 height=30,
-                corner_radius=15
+                corner_radius=15,
+                fg_color=self.colors["primary"],
+                hover_color=self.colors["accent"],
+                text_color=self.colors["text"]
             )
             setattr(self, attr_name, button)
 
