@@ -8,6 +8,7 @@ class SettingsWindow(ctk.CTkToplevel):
     MAX_FOCUS_MINUTES = 480     # 8 hours
     MAX_RECHARGE_MINUTES = 120  # 2 hours
     MAX_BIG_RECHARGE_MINUTES = 240  # 4 hours
+    MAX_CYCLES = 10  # Maximum number of focus rounds before extended recharge
 
     def __init__(self, parent, timer_controller, colors=None, debug=False):
         super().__init__(parent)
@@ -81,6 +82,13 @@ class SettingsWindow(ctk.CTkToplevel):
             self.timer_controller.timer.big_recharge // 60
         )
 
+        self._create_setting_group(
+            settings_frame,
+            "Cycles",
+            "rounds",
+            self.timer_controller.timer.cycles
+        )
+
         # Error label
         self.error_label = ctk.CTkLabel(
             container,
@@ -131,7 +139,8 @@ class SettingsWindow(ctk.CTkToplevel):
         max_value = {
             "Focus Round": self.MAX_FOCUS_MINUTES,
             "Recharge": self.MAX_RECHARGE_MINUTES,
-            "Extended Recharge": self.MAX_BIG_RECHARGE_MINUTES
+            "Extended Recharge": self.MAX_BIG_RECHARGE_MINUTES,
+            "Cycles": self.MAX_CYCLES
         }[label_text]
 
         # Label with max value hint
@@ -173,6 +182,7 @@ class SettingsWindow(ctk.CTkToplevel):
             focus = int(self.focus_round_entry.get())
             recharge = int(self.recharge_entry.get())
             big_recharge = int(self.extended_recharge_entry.get())
+            cycles = int(self.cycles_entry.get())
 
             # Validate ranges
             if not (1 <= focus <= self.MAX_FOCUS_MINUTES):
@@ -181,12 +191,15 @@ class SettingsWindow(ctk.CTkToplevel):
                 raise ValueError(f"Recharge duration must be between 1 and {self.MAX_RECHARGE_MINUTES} minutes")
             if not (1 <= big_recharge <= self.MAX_BIG_RECHARGE_MINUTES):
                 raise ValueError(f"Extended recharge duration must be between 1 and {self.MAX_BIG_RECHARGE_MINUTES} minutes")
+            if not (1 <= cycles <= self.MAX_CYCLES):
+                raise ValueError(f"Number of cycles must be between 1 and {self.MAX_CYCLES}")
 
             # Convert to seconds for the timer
             self.timer_controller.save_settings(
                 focus * 60,
                 recharge * 60,
-                big_recharge * 60
+                big_recharge * 60,
+                cycles
             )
             self.destroy()
         except ValueError as e:

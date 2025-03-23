@@ -82,14 +82,14 @@ class TimerController:
         #self._debug_log("get_state called")
         return self.timer.get_state()
 
-    def save_settings(self, focus_round, recharge, big_recharge):
+    def save_settings(self, focus_round, recharge, big_recharge, cycles):
         """
         Persist user-updated durations in the DB so we can restore
         them next time the app launches.
         """
-        self._debug_log(f"save_settings called with {focus_round=}, {recharge=}, {big_recharge=}")
-        self.timer.set_durations(focus_round, recharge, big_recharge)
-        self.persistence_manager.save_settings(focus_round, recharge, big_recharge)
+        self._debug_log(f"save_settings called with {focus_round=}, {recharge=}, {big_recharge=}, {cycles=}")
+        self.timer.set_durations(focus_round, recharge, big_recharge, cycles)
+        self.persistence_manager.save_settings(focus_round, recharge, big_recharge, cycles)
         self._check_and_notify_state_change()
 
     def update(self):

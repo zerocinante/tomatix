@@ -38,15 +38,16 @@ class Timer:
             print(f"[DEBUG {self.__class__.__name__}] {now} - {message}")
 
 
-    def set_durations(self, focus_round, recharge, big_recharge):
+    def set_durations(self, focus_round, recharge, big_recharge, cycles):
         """
-        Update durations mid-run if the user changes settings.
+        Update durations and cycles mid-run if the user changes settings.
         We reset to avoid confusion between old durations and new ones.
         """
-        self._debug_log(f"set_durations called with {focus_round=}, {recharge=}, {big_recharge=}")
+        self._debug_log(f"set_durations called with {focus_round=}, {recharge=}, {big_recharge=}, {cycles=}")
         self.focus_round_duration = focus_round
         self.recharge = recharge
         self.big_recharge = big_recharge
+        self.cycles = cycles
         self.reset()
 
     def start(self):

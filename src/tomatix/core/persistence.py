@@ -7,7 +7,7 @@ from tzlocal import get_localzone
 class PersistenceManager:
     """
     Handles reading/writing Focus Round-related data to a local SQLite database.
-    We keep DB logic here so the rest of the app doesn’t worry about SQL details.
+    We keep DB logic here so the rest of the app doesn't worry about SQL details.
     """
     def __init__(self, db_path=None, debug=False):
         self.debug = debug
@@ -33,12 +33,14 @@ class PersistenceManager:
         """
         self._debug_log("_initialize_db called")
         with self.db_conn:
+            # Create tables if they don't exist
             self.db_conn.execute("""
                 CREATE TABLE IF NOT EXISTS settings (
                     id INTEGER PRIMARY KEY,
                     focus_round_duration INTEGER,
                     recharge INTEGER,
-                    big_recharge INTEGER
+                    big_recharge INTEGER,
+                    cycles INTEGER
                 )
             """)
             self.db_conn.execute("""
@@ -49,18 +51,18 @@ class PersistenceManager:
                 )
             """)
 
-    def save_settings(self, focus_round, recharge, big_recharge):
-        self._debug_log(f"save_settings called with {focus_round=}, {recharge=}, {big_recharge=}")
+    def save_settings(self, focus_round, recharge, big_recharge, cycles):
+        self._debug_log(f"save_settings called with {focus_round=}, {recharge=}, {big_recharge=}, {cycles=}")
         with self.db_conn:
             self.db_conn.execute("""
-                INSERT OR REPLACE INTO settings (id, focus_round_duration, recharge, big_recharge)
-                VALUES (1, ?, ?, ?)
-            """, (focus_round, recharge, big_recharge))
+                INSERT OR REPLACE INTO settings (id, focus_round_duration, recharge, big_recharge, cycles)
+                VALUES (1, ?, ?, ?, ?)
+            """, (focus_round, recharge, big_recharge, cycles))
 
     def load_settings(self):
         self._debug_log("load_settings called")
         cursor = self.db_conn.execute("""
-            SELECT focus_round_duration, recharge, big_recharge FROM settings WHERE id = 1
+            SELECT focus_round_duration, recharge, big_recharge, cycles FROM settings WHERE id = 1
         """)
         return cursor.fetchone()
 
