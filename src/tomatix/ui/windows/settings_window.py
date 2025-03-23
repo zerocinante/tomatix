@@ -26,7 +26,7 @@ class SettingsWindow(ctk.CTkToplevel):
         self._debug_log("__init__ called")
 
         self.title("Settings")
-        self.geometry("300x500")
+        self.geometry("300x600")  # Increased height to fit all content
 
         # Bind Escape key to close
         self.bind("<Escape>", lambda e: self.destroy())
@@ -42,6 +42,66 @@ class SettingsWindow(ctk.CTkToplevel):
             now = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
             print(f"[DEBUG {self.__class__.__name__}] {now} - {message}")
 
+    def _calculate_flow_score(self, focus_mins, recharge_mins, big_recharge_mins, cycles):
+        """
+        Calculate normalized flow score based on work-to-rest ratio.
+        Returns tuple of (score, total_work_mins, total_rest_mins)
+        """
+        try:
+            # Convert all inputs to integers
+            focus_mins = int(focus_mins)
+            recharge_mins = int(recharge_mins)
+            big_recharge_mins = int(big_recharge_mins)
+            cycles = int(cycles)
+
+            # Calculate total work and rest minutes
+            total_work_mins = focus_mins * cycles
+            total_rest_mins = (recharge_mins * (cycles - 1)) + big_recharge_mins
+
+            # Calculate ratio (work:rest)
+            current_ratio = total_work_mins / total_rest_mins
+
+            # Calculate baseline ratio (25/5/15/4 pattern)
+            baseline_work = 25 * 4  # 100 minutes of work
+            baseline_rest = (5 * 3) + 15  # 30 minutes of rest
+            baseline_ratio = baseline_work / baseline_rest
+
+            # Normalize the score (1.0 = baseline ratio)
+            score = round(current_ratio / baseline_ratio, 2)
+
+            return score, total_work_mins, total_rest_mins
+        except (ValueError, ZeroDivisionError):
+            return None, 0, 0
+
+    def _update_ratio_label(self, *args):
+        """Update the flow score label whenever settings change."""
+        try:
+            focus = int(self.focus_round_entry.get())
+            recharge = int(self.recharge_entry.get())
+            big_recharge = int(self.extended_recharge_entry.get())
+            cycles = int(self.cycles_entry.get())
+
+            score, work_mins, rest_mins = self._calculate_flow_score(
+                focus, recharge, big_recharge, cycles
+            )
+
+            if score:
+                description = (
+                    "more focus-intensive" if score > 1 else
+                    "more rest-oriented" if score < 1 else
+                    "balanced"
+                )
+
+                self.ratio_label.configure(
+                    text=f"Flow Score: {score:.2f} ({description})"
+                )
+                self.ratio_label.pack()
+            else:
+                self.ratio_label.pack_forget()
+
+        except ValueError:
+            self.ratio_label.pack_forget()
+
     def _setup_ui(self):
         """Create and arrange the UI elements."""
         # Main container with padding
@@ -54,11 +114,20 @@ class SettingsWindow(ctk.CTkToplevel):
             text="Timer Settings",
             font=("SF Pro Display", 24),
             text_color="#FFFFFF"
-        ).pack(pady=(0, 30))
+        ).pack(pady=(0, 5))  # Reduced bottom padding
+
+        # Flow score label right below title
+        self.ratio_label = ctk.CTkLabel(
+            container,
+            text="",
+            font=("SF Pro Display", 12),
+            text_color=self.colors["secondary"]
+        )
+        self.ratio_label.pack(pady=(0, 20))  # Added padding below score
 
         # Settings frame
         settings_frame = ctk.CTkFrame(container, fg_color="transparent")
-        settings_frame.pack(fill="x", pady=(0, 20))
+        settings_frame.pack(fill="x", pady=(0, 10))
 
         # Create settings groups
         self._create_setting_group(
@@ -89,20 +158,28 @@ class SettingsWindow(ctk.CTkToplevel):
             self.timer_controller.timer.cycles
         )
 
+        # Bind entry changes to update ratio
+        for entry_name in ['focus_round_entry', 'recharge_entry', 'extended_recharge_entry', 'cycles_entry']:
+            entry = getattr(self, entry_name)
+            entry.bind('<KeyRelease>', self._update_ratio_label)
+
+        # Initial ratio calculation
+        self._update_ratio_label()
+
         # Error label
         self.error_label = ctk.CTkLabel(
             container,
             text="",
             text_color="#FF6B6B",
-            font=("SF Pro Display", 14),
+            font=("SF Pro Display", 12),
             wraplength=260
         )
-        self.error_label.pack(pady=(0, 10))  # Pack it immediately but hide it
-        self.error_label.pack_forget()  # Hide it until needed
+        self.error_label.pack(pady=(0, 10))
+        self.error_label.pack_forget()
 
-        # Buttons frame at the bottom
+        # Buttons frame
         button_frame = ctk.CTkFrame(container, fg_color="transparent")
-        button_frame.pack(fill="x", pady=(10, 0))
+        button_frame.pack(fill="x", pady=(0, 0))
 
         # Save button
         ctk.CTkButton(
